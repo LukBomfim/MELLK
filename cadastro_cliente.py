@@ -70,10 +70,6 @@ def ver_cadastros():
     with open('clientes.json', 'r', encoding='utf-8') as arq:
             clientes = json.load(arq)
 
-    frame = tk.Frame(janela, bg='red')
-    frame.place(relx=0, rely=0, relwidth=1, relheight=1)
-    frame.tkraise()
-    cod = 0
 
     if len(clientes) == 0:
         tk.Label(janela, text='Nenhum cliente cadastrado ainda!\n'
@@ -81,6 +77,14 @@ def ver_cadastros():
         tk.Button(janela, text='Novo Cliente', command=cadastrocliente).pack()
 
     else:
+
+        def outro():
+            c = 0
+
+            return c
+
+        cod = outro()
+
         tk.Label(janela, text=f'Nome: {clientes[cod]["nome"]}\n'
                           f'Telefone: {clientes[cod]["telefone"]}\n'
                           f'CPF/CNPJ: {clientes[cod]["cpf_cnpj"]}\n'
