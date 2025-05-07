@@ -1,0 +1,34 @@
+[
+    {
+        "nome": "Lucas",
+        "telefone": "12121212",
+        "cpf_cnpj": "",
+        "cep": "",
+        "num_casa": "",
+        "email": ""
+    },
+    {
+        "nome": "Isabele",
+        "telefone": "34343434",
+        "cpf_cnpj": "",
+        "cep": "",
+        "num_casa": "",
+        "email": ""
+    },
+    {
+        "nome": "João",
+        "telefone": "45454545",
+        "cpf_cnpj": "",
+        "cep": "",
+        "num_casa": "",
+        "email": ""
+    },
+    {
+        "nome": "Maria",
+        "telefone": "67676767",
+        "cpf_cnpj": "",
+        "cep": "",
+        "num_casa": "",
+        "email": ""
+    }
+]
