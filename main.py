@@ -22,7 +22,7 @@ menuInicial.title('MELLK')
 # menuInicial.state('zoomed')
 
 fonte = ('Arial', 14)
-titulo = tk.Label(menuInicial, text='MENU INICIAL', font=fonte)
+titulo = tk.Label(menuInicial, text='Menu Inicial', font=fonte)
 titulo2 = tk.Label(menuInicial, text='MELLK', font=('Arial', 16), fg='red')
 titulo.pack()
 titulo2.pack()
