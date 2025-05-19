@@ -1,12 +1,1 @@
-[
-    {
-        "univ_cod": 1,
-        "cod": 1,
-        "nome": "ITEM",
-        "preco_venda": 10,
-        "preco_custo": 20,
-        "lucro": 30,
-        "qtd": 40,
-        "obs": ""
-    }
-]
+[]
