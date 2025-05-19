@@ -57,7 +57,7 @@ def botaoProcurar(p, e=None):
     estoque = receberEstoque()
 
     cod = p[0].get()
-    nome = p[1].get()
+    nome = p[1].get().upper()
     obs = p[2].get()
 
     resultados = []
