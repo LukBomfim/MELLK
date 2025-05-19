@@ -16,10 +16,6 @@ def inicio():
     frame_estoque.tkraise()
     frame_estoque.configure(bg='grey')
 
-    with open('estoque.json', 'r', encoding='utf-8') as arq:
-        estoque = json.load(arq)
-        arq.close()
-
     tk.Button(frame_estoque, text='Novo Item', command=novoItem).pack()
     tk.Button(frame_estoque, text='Excluir', command=botaoExcluir).pack()
     tk.Button(frame_estoque, text='Editar', command=editar).pack()
@@ -313,6 +309,7 @@ def convertNum(n):
         except:
             num = float(n)
             return num
+    return None
 
 def lucroAlt(e, c, v, l):
     if c.get() == '':
