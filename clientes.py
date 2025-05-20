@@ -79,7 +79,15 @@ def ver_cadastros():
         frame_verclientes.tkraise()
 
 def novoCliente():
-    global nomeEntry, telefoneEntry, cpf_cnpjEntry, cepEntry, num_casaEntry, emailEntry
+    global nomeEntry, telefoneEntry, cpf_cnpjEntry, cepEntry, num_casaEntry, emailEntry, cod
+
+    with open('clientes.json', 'r', encoding='utf-8') as arq:
+        clientes = json.load(arq)
+        if not clientes:
+            cod = 1
+        else:
+            cod = (clientes[-1]['cod']) + 1
+        arq.close()
 
     # TELA DO CADASTRO
     frame_ncliente = tk.Frame(root)
@@ -254,6 +262,7 @@ def salva_NovoCliente():
 
     else:
         cliente = {
+            "cod": cod,
             "nome": nomeEntry.get().upper(),
             "telefone": telefoneEntry.get(),
             "cpf_cnpj": cpf_cnpjEntry.get(),
@@ -421,7 +430,7 @@ def pesquisar():
     global lista
 
     janela = tk.Toplevel()
-    janela.geometry('700x400')
+    janela.geometry('900x400')
     janela.grab_set()
     janela.title('Busca de cliente')
 
