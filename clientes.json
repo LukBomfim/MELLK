@@ -1,1 +1,11 @@
-[]
+[
+    {
+        "cod": 1,
+        "nome": "MATHIAS3",
+        "telefone": "(11)55545-5455",
+        "cpf_cnpj": "551.515.151-51",
+        "cep": "21515-111",
+        "num_casa": "5501",
+        "email": "dsam@gmail.com"
+    }
+]
