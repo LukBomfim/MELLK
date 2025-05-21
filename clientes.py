@@ -18,6 +18,7 @@ def inicio():
     root.geometry('600x600')
     root.configure(bg='#1A3C34')
     root.resizable(True, True)
+    root.state("zoomed")
 
     # Estilo dos botões
     global button_style
@@ -99,20 +100,24 @@ def novoCliente():
         clientes = json.load(arq)
         cod = 1 if not clientes else clientes[-1]['cod'] + 1
 
-    # FRAME DO CADASTRO
-    frame_ncliente = tk.Frame(root, bg='#1A3C34')
-    frame_ncliente.place(relx=0, rely=0, relwidth=1, relheight=1)
+    # CRIANDO JANELA DE CADASTRO
+    janela = tk.Toplevel(root)
+    janela.geometry('500x600')
+    janela.title('Novo Cliente')
+    janela.configure(bg='#1A3C34')
+    janela.resizable(False, False)
+    janela.grab_set()
 
     fonte = ('Arial', 12)
-    num = (frame_ncliente.register(entryNum), '%P')
+    num = (janela.register(entryNum), '%P')
 
     # ENTRYS DOS DADOS
-    nomeEntry = tk.Entry(frame_ncliente, font=fonte, width=30)
-    telefoneEntry = tk.Entry(frame_ncliente, font=fonte, width=30, validate='key', validatecommand=num)
-    cpf_cnpjEntry = tk.Entry(frame_ncliente, font=fonte, width=30, validate='key', validatecommand=num)
-    cepEntry = tk.Entry(frame_ncliente, font=fonte, width=30, validate='key', validatecommand=num)
-    num_casaEntry = tk.Entry(frame_ncliente, font=fonte, width=30, validate='key', validatecommand=num)
-    emailEntry = tk.Entry(frame_ncliente, font=fonte, width=30)
+    nomeEntry = tk.Entry(janela, font=fonte, width=30)
+    telefoneEntry = tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num)
+    cpf_cnpjEntry = tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num)
+    cepEntry = tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num)
+    num_casaEntry = tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num)
+    emailEntry = tk.Entry(janela, font=fonte, width=30)
 
     fields = [
         ('Nome:', nomeEntry, [formNome, formNomeCor]),
@@ -124,7 +129,7 @@ def novoCliente():
     ]
 
     for label_text, entry, bind_func in fields:
-        tk.Label(frame_ncliente, text=label_text, font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
+        tk.Label(janela, text=label_text, font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
         entry.pack(pady=2)
         if bind_func:
             if isinstance(bind_func, list):
@@ -134,9 +139,8 @@ def novoCliente():
                 entry.bind('<KeyRelease>', bind_func)
 
     # BOTÕES
-    tk.Button(frame_ncliente, text='Salvar', command=salva_NovoCliente, **button_style).pack(pady=10)
-    botaoVoltar(frame_ncliente)
-    frame_ncliente.tkraise()
+    tk.Button(janela, text='Salvar', command=salva_NovoCliente, **button_style).pack(pady=10)
+    tk.Button(janela, text='Cancelar', command=janela.destroy, **button_style).pack(pady=5)
 
 def entryNum(n):
     if n == '':
@@ -228,6 +232,7 @@ def salva_NovoCliente():
             arq.truncate()
         i = len(clientes)
         ver_cadastros()
+        nomeEntry.winfo_toplevel().destroy()  # Fecha a janela de cadastro
 
 def botaoNovoCliente(f):
     tk.Button(f, text='Novo Cliente', command=novoCliente, **button_style).place(relx=0.5, y=(root.winfo_screenheight())//2+100, anchor='center')

@@ -1,1 +1,22 @@
-[]
+[
+    {
+        "univ_cod": 1,
+        "cod": 1,
+        "nome": "NOVO ITEM NOME",
+        "preco_venda": 90000.0,
+        "preco_custo": 50000.0,
+        "lucro": 80.0,
+        "qtd": 50.0,
+        "obs": "um novo item de alto retorno"
+    },
+    {
+        "univ_cod": 2,
+        "cod": 2,
+        "nome": "NOME 2",
+        "preco_venda": 108.0,
+        "preco_custo": 55.0,
+        "lucro": 96.36,
+        "qtd": 5.0,
+        "obs": ""
+    }
+]

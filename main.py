@@ -23,6 +23,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 menuInicial = tk.Tk()
 menuInicial.title('MELLK - Sistema de Vendas')
 menuInicial.configure(bg='#1A3C34')
+menuInicial.state("zoomed")
 
 #Mudando o icon padrão do Tk
 icon_path = os.path.join(script_dir, "mellk-logo.png")
