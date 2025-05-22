@@ -160,7 +160,7 @@ def editar(event=None):
     # Verifico se um item está selecionado.
     ind = tabela.focus()
     if not ind:
-        messagebox.showinfo('Aviso', 'Selecione um item para editar.')
+        messagebox.showinfo('Aviso', 'Selecione um item para editar.',parent=root)
         return
 
     # Carrego o estoque e tento acessar o item pelo índice selecionado.
@@ -168,7 +168,7 @@ def editar(event=None):
     try:
         item = estoque[int(ind)]
     except (ValueError, IndexError):
-        messagebox.showerror('Erro', 'Item inválido selecionado.')
+        messagebox.showerror('Erro', 'Item inválido selecionado.',parent=root)
         return
 
     # Crio uma janela modal para edição, com tamanho fixo e tema consistente.
@@ -198,7 +198,7 @@ def editar(event=None):
 
     # Crio os campos dinamicamente e armazeno em um dicionário para fácil acesso.
     entries = {}
-    for label_text, entry_func, value, bind_func in fields:
+    for label_text, entry_func, value, bind_func_current in fields: # Renomeei para bind_func_current
         tk.Label(janela, text=label_text, font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
         entry = entry_func()
         if isinstance(entry, tk.Text):
@@ -206,16 +206,21 @@ def editar(event=None):
         else:
             entry.insert(0, value)
         entry.pack(pady=2)
-        # Vinculo funções de validação, se existirem. Para 'Nome' e 'Custo', trato casos especiais.
-        if bind_func:
-            if label_text == '*Nome:':
-                entry.bind('<FocusOut>', lambda e, ent=entry: bind_func(e, ent))
-            elif label_text == '*Custo:':
-                entry.bind('<FocusOut>', lambda e, ent=entry: bind_func(e, ent)[0])
-                entry.bind('<KeyRelease>', lambda e, ent=entry: bind_func(e, ent)[1])
-            elif bind_func and callable(bind_func):  # Verifico se bind_func é uma função válida
-                entry.bind('<FocusOut>', lambda e, ent=entry: bind_func(e, ent))
-        # Normalizo as chaves do dicionário, removendo asteriscos e texto extra.
+
+        # AQUI É ONDE A MUDANÇA É NECESSÁRIA
+
+        if label_text == '*Nome:':
+            if bind_func_current and callable(bind_func_current):
+                # Passa bind_func_current como argumento padrão 'func' na lambda
+                entry.bind('<FocusOut>', lambda e, ent=entry, func=bind_func_current: func(e, ent))
+        elif label_text == '*Custo:':
+            # Vincule as funções diretamente aqui para o campo de Custo
+            entry.bind('<FocusOut>', lambda e, ent=entry: formFloat(e, ent))
+            entry.bind('<KeyRelease>', lambda e, ent=entry: formCustoCor(e, ent))
+        elif bind_func_current and callable(bind_func_current): # Para Venda, Lucro, Disponível
+            # Passa bind_func_current como argumento padrão 'func' na lambda
+            entry.bind('<FocusOut>', lambda e, ent=entry, func=bind_func_current: func(e, ent))
+
         key = label_text.strip(':').replace('*', '').replace(' (%)', '')
         entries[key] = entry
 
@@ -244,7 +249,7 @@ def botaoExcluir():
     # Função para excluir um item selecionado na tabela.
     ind = tabela.focus()
     if not ind:
-        messagebox.showinfo('Aviso', 'Selecione um item para excluir.')
+        messagebox.showinfo('Aviso', 'Selecione um item para excluir.',parent=root)
         return
 
     estoque = receberEstoque()
@@ -274,10 +279,10 @@ def excluir(janela, ind):
         estoque.pop(ind)
         with open('estoque.json', 'w', encoding='utf-8') as arq:
             json.dump(estoque, arq, indent=4, ensure_ascii=False)
-        messagebox.showinfo('Sucesso', f'Item "{nome}" excluído com sucesso!')
+        messagebox.showinfo('Sucesso', f'Item "{nome}" excluído com sucesso!',parent=janela)
         atualizarTabela()
     except Exception as e:
-        messagebox.showerror('Erro', f'Erro ao excluir o item: {str(e)}')
+        messagebox.showerror('Erro', f'Erro ao excluir o item: {str(e)}',parent=janela)
     janela.destroy()
 
 def novoItem():
@@ -314,7 +319,7 @@ def novoItem():
 
     # Configuro os campos dinamicamente, com validações específicas.
     entries = {}
-    for label_text, entry_func, value, bind_func in fields:
+    for label_text, entry_func, value, bind_func_current in fields: # Renomeei para bind_func_current
         tk.Label(janela, text=label_text, font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
         entry = entry_func()
         if isinstance(entry, tk.Text):
@@ -322,14 +327,21 @@ def novoItem():
         else:
             entry.insert(0, value)
         entry.pack(pady=2)
-        if bind_func:
-            if label_text == '*Nome:':
-                entry.bind('<FocusOut>', lambda e, ent=entry: bind_func(e, ent))
-            elif label_text == '*Custo:':
-                entry.bind('<FocusOut>', lambda e, ent=entry: bind_func(e, ent)[0])
-                entry.bind('<KeyRelease>', lambda e, ent=entry: bind_func(e, ent)[1])
-            elif bind_func and callable(bind_func):
-                entry.bind('<FocusOut>', lambda e, ent=entry: bind_func(e, ent))
+
+        # AQUI É ONDE A MUDANÇA É NECESSÁRIA
+
+        if label_text == '*Nome:':
+            if bind_func_current and callable(bind_func_current):
+                # Passa bind_func_current como argumento padrão 'func' na lambda
+                entry.bind('<FocusOut>', lambda e, ent=entry, func=bind_func_current: func(e, ent))
+        elif label_text == '*Custo:':
+            # Vincule as funções diretamente aqui para o campo de Custo
+            entry.bind('<FocusOut>', lambda e, ent=entry: formFloat(e, ent))
+            entry.bind('<KeyRelease>', lambda e, ent=entry: formCustoCor(e, ent))
+        elif bind_func_current and callable(bind_func_current): # Para Venda, Lucro, Disponível
+            # Passa bind_func_current como argumento padrão 'func' na lambda
+            entry.bind('<FocusOut>', lambda e, ent=entry, func=bind_func_current: func(e, ent))
+
         key = label_text.strip(':').replace('*', '').replace(' (%)', '')
         entries[key] = entry
 
@@ -464,7 +476,7 @@ def salvar(janela, entry, novo=True):
     if flagCod:
         messagebox.showerror('Erro', 'Código já cadastrado!')
     elif flagNull:
-        messagebox.showerror('Erro', 'Preencha todos os campos obrigatórios (*)!')
+        messagebox.showerror('Erro', 'Preencha todos os campos obrigatórios (*)!',parent=janela)
     else:
         try:
             with open('estoque.json', 'r+', encoding='utf-8') as arq:
@@ -476,8 +488,8 @@ def salvar(janela, entry, novo=True):
                 arq.seek(0)
                 json.dump(estoque, arq, indent=4, ensure_ascii=False)
                 arq.truncate()
-            messagebox.showinfo('Sucesso', f'Item "{item["nome"]}" {"cadastrado" if novo else "alterado"} com sucesso!')
+            messagebox.showinfo('Sucesso', f'Item "{item["nome"]}" {"cadastrado" if novo else "alterado"} com sucesso!',)
             atualizarTabela()
             janela.destroy()
         except Exception as e:
-            messagebox.showerror('Erro', f'Erro ao salvar o item: {str(e)}')
+            messagebox.showerror('Erro', f'Erro ao salvar o item: {str(e)}',parent=janela)
