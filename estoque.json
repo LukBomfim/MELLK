@@ -18,5 +18,25 @@
         "lucro": 96.36,
         "qtd": 5.0,
         "obs": ""
+    },
+    {
+        "univ_cod": 3,
+        "cod": 3,
+        "nome": "MATHIAS",
+        "preco_venda": 232.0,
+        "preco_custo": 22.0,
+        "lucro": 954.55,
+        "qtd": 2.0,
+        "obs": ""
+    },
+    {
+        "univ_cod": 4,
+        "cod": 44,
+        "nome": "O NOME EDITED",
+        "preco_venda": 57.0,
+        "preco_custo": 55.0,
+        "lucro": 3.64,
+        "qtd": 5.0,
+        "obs": "teste de novo"
     }
 ]
