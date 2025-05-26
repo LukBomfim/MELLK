@@ -9,6 +9,7 @@ def inicio():
     root = tk.Toplevel()
     root.geometry('1000x500')
     root.title('VENDAS')
+    root.state('zoomed')
 
                 # FRAME INICIAL DO MÓDULO VENDAS
     frameInicial = tk.Frame(root)
@@ -258,17 +259,13 @@ def finalizarVenda(inf_vendas):
             'pagamento': pagamentos
         }
 
-        frame = tk.Frame(root)
-        frame.place(relx=0, rely=0, relwidth=1, relheight=1)
-        root.geometry('600x700')
+        janela = tk.Toplevel(root)
+        janela.transient(root)
+        janela.geometry('600x700')
 
-        def voltar(frame):
-            root.geometry('1000x700')
-            frame.destroy()
+        tk.Button(janela, text='Voltar', command=janela.destroy).pack()
 
-        tk.Button(frame, text='Voltar', command=lambda: voltar(frame)).pack()
-
-        tk.Label(frame, text='FORMA DE PAGAMENTO').pack()
+        tk.Label(janela, text='FORMA DE PAGAMENTO').pack()
 
         def totalPago(pagamentos):
             totalPago = pagamentos['Dinheiro']
@@ -338,13 +335,13 @@ def finalizarVenda(inf_vendas):
             atualizarRestante(totalPago(pagamentos), rest, total)
 
         def pagDinheiro(entry, pag, rest, total, lista):
-            janelapag = tk.Toplevel(frame)
+            janelapag = tk.Toplevel(janela)
             janelapag.transient(root)
             janelapag.geometry('150x150')
             janelapag.grab_set()
 
             tk.Label(janelapag, text='VALOR PAGO: R$').pack()
-            valor = tk.Entry(janelapag, validate='key', validatecommand=(frame.register(entryNumFloat), '%P'))
+            valor = tk.Entry(janelapag, validate='key', validatecommand=(janela.register(entryNumFloat), '%P'))
             valor.insert(0, entry.get())
             valor.pack()
 
@@ -371,13 +368,13 @@ def finalizarVenda(inf_vendas):
             janelapag.bind('<Return>', lambda event: confirmar(valor, pag, janelapag, rest, total, entry, lista))
 
         def pagPix(entry, pag, rest, total, forma, lista):
-            janelapag = tk.Toplevel(frame)
+            janelapag = tk.Toplevel(janela)
             janelapag.transient(root)
             janelapag.geometry('150x150')
             janelapag.grab_set()
 
             tk.Label(janelapag, text='VALOR PAGO: R$').pack()
-            valor = tk.Entry(janelapag, validate='key', validatecommand=(frame.register(entryNumFloat), '%P'))
+            valor = tk.Entry(janelapag, validate='key', validatecommand=(janela.register(entryNumFloat), '%P'))
             valor.insert(0, f'{float(rest.get()):.2f}')
             valor.pack()
 
@@ -408,18 +405,18 @@ def finalizarVenda(inf_vendas):
 
 
         def pagCredito(entry, pag, rest, total, lista):
-            janelapag = tk.Toplevel(frame)
+            janelapag = tk.Toplevel(janela)
             janelapag.transient(root)
             janelapag.geometry('150x150')
             janelapag.grab_set()
 
             tk.Label(janelapag, text='VALOR PAGO: R$').pack()
-            valor = tk.Entry(janelapag, validate='key', validatecommand=(frame.register(entryNumFloat), '%P'))
+            valor = tk.Entry(janelapag, validate='key', validatecommand=(janela.register(entryNumFloat), '%P'))
             valor.insert(0, f'{float(rest.get()):.2f}')
             valor.pack()
 
             tk.Label(janelapag, text='Qtd. Parcelas:').pack()
-            parcelas = tk.Entry(janelapag, validate='key', validatecommand=(frame.register(entryNumInt), '%P'))
+            parcelas = tk.Entry(janelapag, validate='key', validatecommand=(janela.register(entryNumInt), '%P'))
             parcelas.insert(0, '1')
             parcelas.pack()
 
@@ -457,61 +454,61 @@ def finalizarVenda(inf_vendas):
             janelapag.bind('<Return>', lambda event: confirmar(valor, parcelas, pag, janelapag, rest, total, entry, lista))
 
         colunas = ['forma', 'valor', 'obs']
-        pagtabela = ttk.Treeview(frame, columns=colunas, show='headings')
+        pagtabela = ttk.Treeview(janela, columns=colunas, show='headings')
         pagtabela.heading('forma', text='Forma de pgto')
         pagtabela.heading('valor', text='Valor')
         pagtabela.heading('obs', text='Observação')
 
-        valorRestante = tk.Entry(frame)
+        valorRestante = tk.Entry(janela)
         atualizarRestante(totalPago(pagamentos), valorRestante, total)
 
-        dinheiro = tk.Entry(frame)
+        dinheiro = tk.Entry(janela)
         dinheiro.insert(0, '0.00')
         dinheiro.config(state='disabled')
-        tk.Button(frame, text='Dinheiro:', command= lambda: pagDinheiro(dinheiro, pagamentos, valorRestante, total, pagtabela)).pack()
+        tk.Button(janela, text='Dinheiro:', command= lambda: pagDinheiro(dinheiro, pagamentos, valorRestante, total, pagtabela)).pack()
 
         dinheiro.pack()
 
-        credito = tk.Entry(frame)
-        tk.Button(frame, text='Cartão de crédito:', command=lambda: pagCredito(credito, pagamentos, valorRestante, total, pagtabela)).pack()
+        credito = tk.Entry(janela)
+        tk.Button(janela, text='Cartão de crédito:', command=lambda: pagCredito(credito, pagamentos, valorRestante, total, pagtabela)).pack()
         credito.insert(0, '0.00')
         credito.config(state='disabled')
         credito.pack()
 
-        debito = tk.Entry(frame)
-        tk.Button(frame, text='Cartão de débito:', command=lambda: pagPix(debito, pagamentos, valorRestante, total, 'Debito', pagtabela)).pack()
+        debito = tk.Entry(janela)
+        tk.Button(janela, text='Cartão de débito:', command=lambda: pagPix(debito, pagamentos, valorRestante, total, 'Debito', pagtabela)).pack()
         debito.insert(0, '0.00')
         debito.config(state='disabled')
         debito.pack()
 
-        pix = tk.Entry(frame)
-        tk.Button(frame, text='PIX / Transferência:', command=lambda: pagPix(pix, pagamentos, valorRestante, total, 'Pix', pagtabela)).pack()
+        pix = tk.Entry(janela)
+        tk.Button(janela, text='PIX / Transferência:', command=lambda: pagPix(pix, pagamentos, valorRestante, total, 'Pix', pagtabela)).pack()
         pix.insert(0, '0.00')
         pix.config(state='disabled')
         pix.pack()
 
         pagtabela.pack()
 
-        desconto = tk.Entry(frame, validate='key', validatecommand=(frame.register(entryNumFloat), '%P'))
-        tk.Label(frame, text='DESCONTO: ').pack()
+        desconto = tk.Entry(janela, validate='key', validatecommand=(janela.register(entryNumFloat), '%P'))
+        tk.Label(janela, text='DESCONTO: ').pack()
         desconto.pack()
 
-        tk.Label(frame, text='TOTAL DA VENDA: R$').pack()
-        valorTotal = tk.Entry(frame)
+        tk.Label(janela, text='TOTAL DA VENDA: R$').pack()
+        valorTotal = tk.Entry(janela)
         valorTotal.insert(0, f'{total:.2f}')
         valorTotal.configure(state='disabled')
         valorTotal.pack()
 
-        tk.Label(frame, text='RESTANTE A PAGAR: R$').pack()
+        tk.Label(janela, text='RESTANTE A PAGAR: R$').pack()
         valorRestante.pack()
 
         entries = [dinheiro, credito, debito, pix]
         entriesTotal = [valorTotal, valorRestante]
 
-        tk.Button(frame, text='Zerar e recomeçar', command=lambda: zerar(pagtabela, entries, valorRestante, total)).pack()
-        tk.Button(frame, text='Finalizar', command=lambda: fecharVenda(venda, float(valorRestante.get()), frame)).pack()
+        tk.Button(janela, text='Zerar e recomeçar', command=lambda: zerar(pagtabela, entries, valorRestante, total)).pack()
+        tk.Button(janela, text='Finalizar', command=lambda: fecharVenda(venda, float(valorRestante.get()), janela)).pack()
 
-        desconto.bind('<KeyRelease>', lambda event: desc(event, frame, desconto, total, totalPago(pagamentos), entriesTotal))
+        desconto.bind('<KeyRelease>', lambda event: desc(event, janela, desconto, total, totalPago(pagamentos), entriesTotal))
 
 def fecharVenda(venda, restante, j):
 
