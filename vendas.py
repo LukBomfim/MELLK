@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-import json
+from reportlab.pdfgen import canvas
+import json, os
 
 def inicio():
     global root, frameInicial
@@ -184,7 +185,7 @@ def venda():
     if not vendas:
         num_venda = 1
     else:
-        num_venda = 1
+        num_venda = len(vendas)+1
 
     root.geometry('1000x700')
     frame = tk.Frame(root)
@@ -220,6 +221,7 @@ def venda():
     tk.Button(frame, text='Adicionar Item\ndo Estoque', command=itemEstoque).pack()
     tk.Button(frame, text='Adicionar Item\nAvulso', command=itemAvulso).pack()
     tk.Button(frame, text='Excluir Item', command= lambda: excluirItem(itensLista, frame)).pack()
+    itensLista.bind('<Delete>', lambda event: excluirItem(itensLista, frame))
 
     itensLista.pack()
 
@@ -229,7 +231,7 @@ def venda():
     tk.Button(frame, text='Finalizar Venda', command= lambda: finalizarVenda(venda)).pack()
 
 def finalizarVenda(inf_vendas):
-    num_venda = inf_vendas[0]
+    num_venda = int(inf_vendas[0])
     cliente = inf_vendas[1]
     itens = inf_vendas[2]
     total = 0
@@ -248,13 +250,25 @@ def finalizarVenda(inf_vendas):
             'Debito': [],
         }
 
-        janela = tk.Toplevel(root)
-        janela.transient(root)
-        janela.grab_set()
-        janela.geometry('600x600')
+        venda = {
+            'num_venda': num_venda,
+            'cliente': cliente,
+            'itens': itens,
+            'total': total,
+            'pagamento': pagamentos
+        }
 
-        tk.Label(janela, text='FORMA DE PAGAMENTO').pack()
+        frame = tk.Frame(root)
+        frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+        root.geometry('600x700')
 
+        def voltar(frame):
+            root.geometry('1000x700')
+            frame.destroy()
+
+        tk.Button(frame, text='Voltar', command=lambda: voltar(frame)).pack()
+
+        tk.Label(frame, text='FORMA DE PAGAMENTO').pack()
 
         def totalPago(pagamentos):
             totalPago = pagamentos['Dinheiro']
@@ -277,18 +291,64 @@ def finalizarVenda(inf_vendas):
             rest.insert(0, f'{total - pago:.2f}')
             rest.configure(state='disabled')
 
-        def pagDinheiro(entry, pag, rest, total):
-            janelapag = tk.Toplevel(janela)
-            janelapag.transient(janela)
+        def atualizarLista(lista, pagamentos):
+
+            for p in lista.get_children():
+                lista.delete(p)
+
+            if pagamentos['Dinheiro'] != 0:
+                lista.insert('', 'end', values=(
+                    'Dinheiro',
+                    f"R$ {pagamentos['Dinheiro']:.2f}",
+                    ''))
+            for pix in pagamentos['Pix']:
+                lista.insert('', 'end', values=(
+                    'Pix/Transferência',
+                    f'R$ {pix:.2f}',
+                    ''
+                ))
+            for cred in pagamentos['Credito']:
+                lista.insert('', 'end', values=(
+                    'Cartão de Crédito',
+                    f"R$ {cred['valor']:.2f}",
+                    f"Parcelas: {cred['parcelas']}"
+                ))
+            for deb in pagamentos['Debito']:
+                lista.insert('', 'end', values=(
+                    'Cartão de Débito',
+                    f"R$ {deb:.2f}",
+                    ''
+                ))
+
+        def zerar(lista, entries, rest, total):
+            pagamentos['Dinheiro'] = 0.0
+            pagamentos['Pix'].clear()
+            pagamentos['Credito'].clear()
+            pagamentos['Debito'].clear()
+
+            for p in lista.get_children():
+                lista.delete(p)
+
+            for e in entries:
+                e.configure(state='normal')
+                e.delete(0, tk.END)
+                e.insert(0, '0.00')
+                e.configure(state='disabled')
+
+            atualizarRestante(totalPago(pagamentos), rest, total)
+
+        def pagDinheiro(entry, pag, rest, total, lista):
+            janelapag = tk.Toplevel(frame)
+            janelapag.transient(root)
             janelapag.geometry('150x150')
             janelapag.grab_set()
 
             tk.Label(janelapag, text='VALOR PAGO: R$').pack()
-            valor = tk.Entry(janelapag, validate='key', validatecommand=(janela.register(entryNumFloat), '%P'))
+            valor = tk.Entry(janelapag, validate='key', validatecommand=(frame.register(entryNumFloat), '%P'))
             valor.insert(0, entry.get())
             valor.pack()
 
-            def confirmar(v, pag, j, rest, total, entry):
+            def confirmar(v, pag, j, rest, total, entry, lista):
 
                 if v.get() == '':
                     valor = 0
@@ -302,22 +362,26 @@ def finalizarVenda(inf_vendas):
                 entry.delete(0, tk.END)
                 entry.insert(0, f'{valor:.2f}')
                 entry.configure(state='disabled')
+
+                atualizarLista(lista, pag)
+
                 j.destroy()
 
-            tk.Button(janelapag, text='Confirmar', command=lambda: confirmar(valor, pag, janelapag, rest, total, entry)).pack()
+            tk.Button(janelapag, text='Confirmar', command=lambda: confirmar(valor, pag, janelapag, rest, total, entry, lista)).pack()
+            janelapag.bind('<Return>', lambda event: confirmar(valor, pag, janelapag, rest, total, entry, lista))
 
-        def pagPix(entry, pag, rest, total, forma):
-            janelapag = tk.Toplevel(janela)
-            janelapag.transient(janela)
+        def pagPix(entry, pag, rest, total, forma, lista):
+            janelapag = tk.Toplevel(frame)
+            janelapag.transient(root)
             janelapag.geometry('150x150')
             janelapag.grab_set()
 
             tk.Label(janelapag, text='VALOR PAGO: R$').pack()
-            valor = tk.Entry(janelapag, validate='key', validatecommand=(janela.register(entryNumFloat), '%P'))
-            valor.insert(0, '0.00')
+            valor = tk.Entry(janelapag, validate='key', validatecommand=(frame.register(entryNumFloat), '%P'))
+            valor.insert(0, f'{float(rest.get()):.2f}')
             valor.pack()
 
-            def confirmar(v, pag, j, rest, total, entry, forma):
+            def confirmar(v, pag, j, rest, total, entry, forma, lista):
 
                 if v.get() == '':
                     messagebox.showerror('Erro', 'Valor inválido.', parent=j)
@@ -334,27 +398,32 @@ def finalizarVenda(inf_vendas):
                         entry.delete(0, tk.END)
                         entry.insert(0, sum(pag[forma]))
                         entry.configure(state='disabled')
+
+                        atualizarLista(lista, pag)
+
                         j.destroy()
 
-            tk.Button(janelapag, text='Confimar', command=lambda: confirmar(valor, pag, janelapag, rest, total, entry, forma)).pack()
+            tk.Button(janelapag, text='Confirmar', command=lambda: confirmar(valor, pag, janelapag, rest, total, entry, forma, lista)).pack()
+            janelapag.bind('<Return>', lambda event: confirmar(valor, pag, janelapag, rest, total, entry, forma, lista))
 
-        def pagCredito(entry, pag, rest, total):
-            janelapag = tk.Toplevel(janela)
-            janelapag.transient(janela)
+
+        def pagCredito(entry, pag, rest, total, lista):
+            janelapag = tk.Toplevel(frame)
+            janelapag.transient(root)
             janelapag.geometry('150x150')
             janelapag.grab_set()
 
             tk.Label(janelapag, text='VALOR PAGO: R$').pack()
-            valor = tk.Entry(janelapag, validate='key', validatecommand=(janela.register(entryNumFloat), '%P'))
-            valor.insert(0, '')
+            valor = tk.Entry(janelapag, validate='key', validatecommand=(frame.register(entryNumFloat), '%P'))
+            valor.insert(0, f'{float(rest.get()):.2f}')
             valor.pack()
 
             tk.Label(janelapag, text='Qtd. Parcelas:').pack()
-            parcelas = tk.Entry(janelapag, validate='key', validatecommand=(janela.register(entryNumInt), '%P'))
+            parcelas = tk.Entry(janelapag, validate='key', validatecommand=(frame.register(entryNumInt), '%P'))
             parcelas.insert(0, '1')
             parcelas.pack()
 
-            def confirmar(v, p, pag, j, rest, total, entry):
+            def confirmar(v, p, pag, j, rest, total, entry, lista):
                 if v.get() == '':
                     messagebox.showerror('Erro', 'Valor inválido.', parent=j)
                 elif p.get() == '':
@@ -369,61 +438,166 @@ def finalizarVenda(inf_vendas):
                         parcelas = int(p.get())
                         pagamento = {'valor': valor, 'parcelas': parcelas}
                         pag['Credito'].append(pagamento)
+                        soma = 0
+                        for p in pag['Credito']:
+                            soma += p['valor']
 
-            tk.Button(janelapag, text='Confirmar')
+                        atualizarRestante(totalPago(pag), rest, total)
 
-        valorRestante = tk.Entry(janela)
+                        entry.configure(state='normal')
+                        entry.delete(0, tk.END)
+                        entry.insert(0, f'{soma:.2f}')
+                        entry.configure(state='disabled')
+
+                        atualizarLista(lista, pag)
+
+                        j.destroy()
+
+            tk.Button(janelapag, text='Confirmar', command=lambda: confirmar(valor, parcelas, pag, janelapag, rest, total, entry, lista)).pack()
+            janelapag.bind('<Return>', lambda event: confirmar(valor, parcelas, pag, janelapag, rest, total, entry, lista))
+
+        colunas = ['forma', 'valor', 'obs']
+        pagtabela = ttk.Treeview(frame, columns=colunas, show='headings')
+        pagtabela.heading('forma', text='Forma de pgto')
+        pagtabela.heading('valor', text='Valor')
+        pagtabela.heading('obs', text='Observação')
+
+        valorRestante = tk.Entry(frame)
         atualizarRestante(totalPago(pagamentos), valorRestante, total)
 
-        dinheiro = tk.Entry(janela)
+        dinheiro = tk.Entry(frame)
         dinheiro.insert(0, '0.00')
         dinheiro.config(state='disabled')
-        tk.Button(janela, text='Dinheiro:', command= lambda: pagDinheiro(dinheiro, pagamentos, valorRestante, total)).pack()
+        tk.Button(frame, text='Dinheiro:', command= lambda: pagDinheiro(dinheiro, pagamentos, valorRestante, total, pagtabela)).pack()
 
         dinheiro.pack()
 
-        tk.Button(janela, text='Cartão de crédito:').pack()
-        credito = tk.Entry(janela)
+        credito = tk.Entry(frame)
+        tk.Button(frame, text='Cartão de crédito:', command=lambda: pagCredito(credito, pagamentos, valorRestante, total, pagtabela)).pack()
         credito.insert(0, '0.00')
         credito.config(state='disabled')
         credito.pack()
 
-        debito = tk.Entry(janela)
-        tk.Button(janela, text='Cartão de débito:', command=lambda: pagPix(debito, pagamentos, valorRestante, total, 'Debito')).pack()
+        debito = tk.Entry(frame)
+        tk.Button(frame, text='Cartão de débito:', command=lambda: pagPix(debito, pagamentos, valorRestante, total, 'Debito', pagtabela)).pack()
         debito.insert(0, '0.00')
         debito.config(state='disabled')
         debito.pack()
 
-        pix = tk.Entry(janela)
-        tk.Button(janela, text='PIX / Transferência:', command=lambda: pagPix(pix, pagamentos, valorRestante, total, 'Pix')).pack()
+        pix = tk.Entry(frame)
+        tk.Button(frame, text='PIX / Transferência:', command=lambda: pagPix(pix, pagamentos, valorRestante, total, 'Pix', pagtabela)).pack()
         pix.insert(0, '0.00')
         pix.config(state='disabled')
         pix.pack()
 
-        colunas = ['forma', 'valor', 'obs']
-        pagtabela = ttk.Treeview(janela, columns=colunas, show='headings')
-        pagtabela.heading('forma', text='Forma de pgto')
-        pagtabela.heading('valor', text='Valor')
-        pagtabela.heading('obs', text='Observação')
         pagtabela.pack()
 
-        desconto = tk.Entry(janela, validate='key', validatecommand=(janela.register(entryNumFloat), '%P'))
-        tk.Label(janela, text='DESCONTO: ').pack()
+        desconto = tk.Entry(frame, validate='key', validatecommand=(frame.register(entryNumFloat), '%P'))
+        tk.Label(frame, text='DESCONTO: ').pack()
         desconto.pack()
 
-        tk.Label(janela, text='TOTAL DA VENDA: R$').pack()
-        valorTotal = tk.Entry(janela)
+        tk.Label(frame, text='TOTAL DA VENDA: R$').pack()
+        valorTotal = tk.Entry(frame)
         valorTotal.insert(0, f'{total:.2f}')
         valorTotal.configure(state='disabled')
         valorTotal.pack()
 
-        tk.Label(janela, text='RESTANTE A PAGAR: R$').pack()
+        tk.Label(frame, text='RESTANTE A PAGAR: R$').pack()
         valorRestante.pack()
 
-        entries = [valorTotal, valorRestante]
+        entries = [dinheiro, credito, debito, pix]
+        entriesTotal = [valorTotal, valorRestante]
 
-        desconto.bind('<KeyRelease>', lambda event: desc(event, janela, desconto, total, totalPago(pagamentos), entries))
+        tk.Button(frame, text='Zerar e recomeçar', command=lambda: zerar(pagtabela, entries, valorRestante, total)).pack()
+        tk.Button(frame, text='Finalizar', command=lambda: fecharVenda(venda, float(valorRestante.get()), frame)).pack()
 
+        desconto.bind('<KeyRelease>', lambda event: desc(event, frame, desconto, total, totalPago(pagamentos), entriesTotal))
+
+def fecharVenda(venda, restante, j):
+
+    if restante > 0:
+        messagebox.showerror('Pagamento inválido', 'Pagamento menor que o valor total.', parent=j)
+    else:
+        if restante < 0:
+            messagebox.showinfo('Troco', f'Troco devido: R$ {restante * (-1):.2f}', parent=j)
+
+        with open('vendas.json', 'r+', encoding='utf-8') as arq:
+            vendas = json.load(arq)
+            vendas.append(venda)
+
+            arq.seek(0)
+            json.dump(vendas, arq, indent=4, ensure_ascii=False)
+            arq.truncate()
+
+            arq.close()
+        recibo = messagebox.askyesno('Recibo:', 'Deseja imprimir um recibo da venda?', parent=j)
+        if recibo:
+            gerarRecibo(venda, restante*(-1))
+        j.destroy()
+        root.geometry('1000x500')
+        frameInicial.tkraise()
+
+def gerarRecibo(venda, troco=0):
+    arq = f'recibo_venda{venda["num_venda"]}.pdf'
+    recibo = canvas.Canvas(arq)
+    recibo.setFont('Courier', 10)
+    recibo.setTitle(f'Recibo de Venda N°{venda["num_venda"]}')
+    y = 800
+
+    def linha(t, s=15):
+        nonlocal y
+        recibo.drawString(40, y, t)
+        y -= s
+
+    linha(f'RECIBO DA VENDA N°{venda["num_venda"]}')
+    linha('----------------------------------------------')
+    linha(f'CLIENTE: {venda["cliente"]["nome"]:>36}')
+    linha(f'TELEFONE: {venda["cliente"]["telefone"]:>36}')
+    linha(f'CPF/CNPJ: {venda["cliente"]["cpf_cnpj"]:>36}')
+    linha(f'E-MAIL: {venda["cliente"]["email"]:>36}')
+    linha('----------------------------------------------')
+    linha(f'{"PRODUTO":<15}{"VLR.UNIT.":>12}{"QTD":>6}{"TOTAL":>12}')
+    linha('----------------------------------------------')
+
+    for item in venda['itens']:
+        nome = item['nome']
+        valor = float(item['preco_venda'])
+        qtd = float(item['qtd'])
+        total = float(item['total'])
+
+        linha(f'{nome:<15}{valor:12.2f}{qtd:>6.1f}{total:>12.2f}')
+
+    total_geral = float(venda['total'])
+
+    linha('----------------------------------------------')
+    linha(f'{"TOTAL GERAL:":>33} R$ {total_geral:>7.2f}')
+    linha('----------------------------------------------')
+    linha(f'{"FORMAS DE PAGAMENTO":^45}')
+
+    for k, v in venda['pagamento'].items():
+        forma = k
+        valor = 0
+        if forma == 'Credito':
+            for pag in v:
+                valor = float(pag['valor'])
+                parcela = f'Parcelas: {pag["parcelas"]}'
+
+                linha(f'{forma:>15}{valor:^10.2f}{parcela:<20}')
+
+        elif forma == 'Pix' or forma == 'Debito':
+            valor = sum(v)
+            if valor > 0:
+                linha(f'{forma:>15}{valor:^10.2f}')
+
+        else:
+            valor = v
+            if valor > 0:
+                linha(f'{forma:>15}{valor:^10.2f}')
+
+    linha(f'{f"TROCO: {troco:.2f}":^45}')
+
+    recibo.save()
+    os.startfile(arq)
 
 def desc(e, j, d, t, pago, entries):
     try:
@@ -447,7 +621,6 @@ def desc(e, j, d, t, pago, entries):
     entries[1].delete(0, tk.END)
     entries[1].insert(0, f'{novoRestante:.2f}')
     entries[1].configure(state='disabled')
-
 
 def itemEstoque():
 
@@ -489,13 +662,14 @@ def itemEstoque():
 
     dados = [cod, nome, venda, qtd, total, disp]
 
-    def procurarItem(d):
+    def procurarItem(d, j):
         estq = receberEstoque()
 
-        janela = tk.Toplevel()
+        janela = tk.Toplevel(j)
         janela.title('Procurar Item')
         janela.geometry('700x700')
         janela.state('zoomed')
+        janela.grab_set()
 
         cod = tk.Entry(janela)
         nome = tk.Entry(janela)
@@ -522,12 +696,12 @@ def itemEstoque():
 
         def procurar(tabela, pesq, estq):
             cod = pesq[0].get()
-            nome = pesq[1].get()
-            obs = pesq[2].get()
+            nome = pesq[1].get().upper()
+            obs = pesq[2].get().upper()
             result = []
 
             for i in estq:
-                if cod in str(i['cod']) and nome in i['nome'] and obs in i['obs']:
+                if cod in str(i['cod']) and nome in i['nome'].upper() and obs in i['obs'].upper():
                     result.append(i)
 
             if cod == '' and nome == '' and obs == '':
@@ -586,7 +760,7 @@ def itemEstoque():
 
         tabela.bind('<Double-1>', lambda event: selecionar(tabela, estq, d, janela))
 
-    tk.Button(janela, text='Procurar', command= lambda: procurarItem(dados)).pack()
+    tk.Button(janela, text='Procurar', command= lambda: procurarItem(dados, janela)).pack()
     tk.Button(janela, text='Adicionar', command= lambda: addItemEstoque(dados, janela)).pack()
 
 def addItemEstoque(dados, j):
@@ -740,24 +914,6 @@ def addItemAvulso(dados, j):
 
         j.destroy()
 
-def entryNumFloat(n):
-    if n == '':
-        return True
-    try:
-        float(n)
-        return True
-    except:
-        return False
-
-def entryNumInt(n):
-    if n == '':
-        return True
-    try:
-        int(n)
-        return True
-    except:
-        return False
-
 def excluirItem(l, f):
     global itens
 
@@ -806,6 +962,24 @@ def atualizarValorTotal():
         valorTotal += item['total']
 
     valorTotalLabel.configure(text=f'{valorTotal:.2f}')
+
+def entryNumFloat(n):
+    if n == '':
+        return True
+    try:
+        float(n)
+        return True
+    except:
+        return False
+
+def entryNumInt(n):
+    if n == '':
+        return True
+    try:
+        int(n)
+        return True
+    except:
+        return False
 
 def orcamento():
     print('Orçamento')
