@@ -1,7 +1,9 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
 import json, os
+from datetime import datetime
 
 # Estilo pros botões, pra deixar tudo com a mesma cara
 # Aqui a gente define como os botões vão ficar: fonte, cor, tamanho, tudo padronizado
@@ -251,21 +253,37 @@ def venda():
     tk.Label(cliente_frame, text=f'N°: {cliente["num_casa"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
     tk.Label(cliente_frame, text=f'E-mail: {cliente["email"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
 
-    # Campos pra adicionar itens pelo código
+# Frame pra adicionar itens pelo código, com rótulos pra cada campo
     item_frame = tk.Frame(frame, bg='#1A3C34')
     item_frame.pack(pady=10, fill='x', padx=20)
-    tk.Label(item_frame, text='Código do Produto:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT)
-    cod_entry = tk.Entry(item_frame, font=fonte, width=10)
+
+    # Rótulo e entrada pro código do produto
+    tk.Label(item_frame, text='Código:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT)
+    cod_entry = tk.Entry(item_frame, font=fonte, width=10, bg='#E5E5E5', fg='#000000', insertbackground='#000000')
     cod_entry.pack(side=tk.LEFT, padx=5)
-    nome_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#1A3C34', width=30)
+
+    # Rótulo e campo pro nome do produto
+    tk.Label(item_frame, text='Nome do Produto:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT, padx=(10, 5))
+    nome_label = tk.Label(item_frame, text='', font=fonte, fg='#D3D3D3', bg='#2A2A2A', width=30)
     nome_label.pack(side=tk.LEFT, padx=5)
-    preco_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#1A3C34', width=10)
+
+    # Rótulo e campo pro valor unitário
+    tk.Label(item_frame, text='Valor Unit.:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT, padx=(10, 5))
+    preco_label = tk.Label(item_frame, text='', font=fonte, fg='#D3D3D3', bg='#2A2A2A', width=10)
     preco_label.pack(side=tk.LEFT, padx=5)
-    qtd_entry = tk.Entry(item_frame, font=fonte, width=10)
-    qtd_entry.insert(0, '1.00')  # Quantidade padrão
+
+    # Rótulo e entrada pra quantidade a vender
+    tk.Label(item_frame, text='Quantidade:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT, padx=(10, 5))
+    qtd_entry = tk.Entry(item_frame, font=fonte, width=10, bg='#E5E5E5', fg='#000000', insertbackground='#000000')
+    qtd_entry.insert(0, '1.00')
     qtd_entry.pack(side=tk.LEFT, padx=5)
-    disp_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#1A3C34', width=10)
+
+    # Rótulo e campo pra quantidade disponível
+    tk.Label(item_frame, text='Disponível:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT, padx=(10, 5))
+    disp_label = tk.Label(item_frame, text='', font=fonte, fg='#D3D3D3', bg='#2A2A2A', width=10)
     disp_label.pack(side=tk.LEFT, padx=5)
+    
+    # Botão pra adicionar o item
     tk.Button(item_frame, text='Adicionar', command=lambda: adicionarItemPorCodigo(cod_entry, nome_label, preco_label, qtd_entry, disp_label, frame), **button_style).pack(side=tk.LEFT, padx=5)
 
     # Faz a busca do item enquanto o usuário digita o código
@@ -410,8 +428,10 @@ def finalizarVenda(inf_vendas):
     altura_janela = 600
     largura_tela = root.winfo_screenwidth()
     altura_tela = root.winfo_screenheight()
+    
     pos_x = (largura_tela - largura_janela) // 2
     pos_y = (altura_tela - altura_janela) // 2
+    
     janela.geometry(f'{largura_janela}x{altura_janela}+{pos_x}+{pos_y}')
     janela.configure(bg='#1A3C34')
     janela.resizable(False, False)
@@ -494,7 +514,7 @@ def finalizarVenda(inf_vendas):
         # Janela pra adicionar pagamento em dinheiro
         janelapag = tk.Toplevel(janela)
         janelapag.transient(janela)
-        janelapag.geometry('200x150')
+        janelapag.geometry(f'{largura_janela-500}x{altura_janela-450}+{pos_x*2}+{pos_y*2}')
         janelapag.configure(bg='#1A3C34')
         janelapag.grab_set()
 
@@ -521,7 +541,9 @@ def finalizarVenda(inf_vendas):
         # Janela pra adicionar pagamento via Pix ou Débito
         janelapag = tk.Toplevel(janela)
         janelapag.transient(janela)
-        janelapag.geometry('200x150')
+
+        janelapag.geometry(f'{largura_janela-500}x{altura_janela-450}+{pos_x*2}+{pos_y*2}')
+        
         janelapag.configure(bg='#1A3C34')
         janelapag.grab_set()
 
@@ -551,7 +573,7 @@ def finalizarVenda(inf_vendas):
         # Janela pra adicionar pagamento com cartão de crédito
         janelapag = tk.Toplevel(janela)
         janelapag.transient(janela)
-        janelapag.geometry('200x200')
+        janelapag.geometry(f'{largura_janela-500}x{altura_janela-250}+{pos_x*2}+{pos_y*2}')
         janelapag.configure(bg='#1A3C34')
         janelapag.grab_set()
 
@@ -696,59 +718,95 @@ def fecharVenda(venda, restante, j):
     frameInicial.tkraise()  # Volta pra tela inicial
 
 def gerarRecibo(venda, troco=0):
-    # Cria um recibo em PDF com os detalhes da venda
+    # Cria um recibo em PDF com layout bem alinhado
     arq = f'recibo_venda{venda["num_venda"]}.pdf'
-    recibo = canvas.Canvas(arq)
-    recibo.setFont('Courier', 10)
+    recibo = canvas.Canvas(arq, pagesize=A4)  # Página A4 (595x842 pontos)
+    largura, altura = A4  # Dimensões da página
+    margem = 20  # Margem pequena pra usar mais espaço
+    recibo.setFont('Courier', 12)  # Fonte monoespaçada pra alinhamento fácil
     recibo.setTitle(f'Recibo de Venda N°{venda["num_venda"]}')
-    y = 800
+    y = altura - margem - 40  # Começa um pouco mais abaixo pra caber título
 
-    def linha(t, s=15):
+    def linha(t, s=14, centro=False):
+        # Escreve uma linha no PDF, com opção de centralizar
         nonlocal y
-        recibo.drawString(40, y, t)
+        if y < margem + 60:  # Se tá quase no fim, cria nova página
+            recibo.showPage()
+            recibo.setFont('Courier', 12)
+            y = altura - margem - 40
+        if centro:
+            recibo.drawCentredString(largura / 2, y, t)  # Centraliza na página
+        else:
+            recibo.drawString(margem, y, t)  # Alinha à esquerda
         y -= s
 
-    linha(f'RECIBO DA VENDA N°{venda["num_venda"]}')
-    linha('----------------------------------------------')
-    linha(f'CLIENTE: {venda["cliente"]["nome"]:>36}')
-    linha(f'TELEFONE: {venda["cliente"]["telefone"]:>36}')
-    linha(f'CPF/CNPJ: {venda["cliente"]["cpf_cnpj"]:>36}')
-    linha(f'E-MAIL: {venda["cliente"]["email"]:>36}')
-    linha('----------------------------------------------')
-    linha(f'{"PRODUTO":<15}{"VLR.UNIT.":>12}{"QTD":>6}{"TOTAL":>12}')
-    linha('----------------------------------------------')
+    # Título grande e centralizado
+    recibo.setFont('Courier-Bold', 14)
+    linha(f'RECIBO DA VENDA N°{venda["num_venda"]}', centro=True, s=20)
+    recibo.setFont('Courier', 12)
+    linha('-' * 80, s=18)  # Separador longo pra preencher a página
 
+    # Dados do cliente, alinhados à esquerda com prefixo fixo
+    linha(f'CLIENTE:  {venda["cliente"]["nome"]:<50}')
+    linha(f'TELEFONE: {venda["cliente"]["telefone"]:<50}')
+    linha(f'CPF/CNPJ: {venda["cliente"]["cpf_cnpj"]:<50}')
+    linha(f'E-MAIL:   {venda["cliente"]["email"]:<50}')
+    linha('-' * 80, s=18)
+
+    # Tabela de itens com colunas bem espaçadas
+    linha(f'{"PRODUTO":<30}{"VLR.UNIT.":>12}{"QTD":>8}{"TOTAL":>12}')
+    linha('-' * 80, s=16)
+
+    # Lista os itens da venda
     for item in venda['itens']:
-        nome = item['nome'][:15]  # Limita o nome pra não quebrar o layout
+        nome = item['nome'][:30]  # Nome maior pra usar mais espaço
         valor = float(item['preco_venda'])
         qtd = float(item['qtd'])
         total = float(item['total'])
-        linha(f'{nome:<15}{valor:12.2f}{qtd:>6.1f}{total:>12.2f}')
+        linha(f'{nome:<30}{valor:>12.2f}{qtd:>8.1f}{total:>12.2f}')
 
+    # Total geral, alinhado à direita
     total_geral = float(venda['total'])
-    linha('----------------------------------------------')
-    linha(f'{"TOTAL GERAL:":>33} R$ {total_geral:>7.2f}')
-    linha('----------------------------------------------')
-    linha(f'{"FORMAS DE PAGAMENTO":^45}')
+    linha('-' * 80, s=18)
+    linha(f'{"TOTAL GERAL:":>50} R$ {total_geral:>10.2f}')
+    linha('-' * 80, s=18)
+    
+    
+    linha(' ' * 80, s=18)
+    # Formas de pagamento em tabela clara
+    linha(f'FORMAS DE PAGAMENTO', centro=True)
+    linha('-' * 80, s=16)
+    linha(f'{"TIPO":<20}{"VALOR":>15}{"OBSERVAÇÃO":>25}')
+    linha('-' * 80, s=16)
 
+    # Lista as formas de pagamento
     for k, v in venda['pagamento'].items():
         forma = k
         valor = 0
+        obs = ''
         if forma == 'Credito':
             for pag in v:
                 valor = float(pag['valor'])
-                parcela = f'Parcelas: {pag["parcelas"]}'
-                linha(f'{forma:>15}{valor:^10.2f}{parcela:<20}')
+                obs = f'Parcelas: {pag["parcelas"]}'
+                linha(f'{forma:<20}{valor:>15.2f}{obs:>25}')
         elif forma == 'Pix' or forma == 'Debito':
             valor = sum(v)
             if valor > 0:
-                linha(f'{forma:>15}{valor:^10.2f}')
+                linha(f'{forma:<20}{valor:>15.2f}{obs:>25}')
         else:
             valor = v
             if valor > 0:
-                linha(f'{forma:>15}{valor:^10.2f}')
+                linha(f'{forma:<20}{valor:>15.2f}{obs:>25}')
 
-    linha(f'{f"TROCO: {troco:.2f}":^45}')
+    # Troco e separador final
+    linha('-' * 80, s=18)
+    linha(f'{"TROCO:":<50} R$ {troco:<10.2f}', s=20)
+
+    # Rodapé com data e hora
+    recibo.setFont('Courier', 10)
+    data = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+    recibo.drawCentredString(largura / 2, margem + 20, f'Gerado em: {data}')
+
     recibo.save()
     os.startfile(arq)  # Abre o PDF (só funciona no Windows)
 

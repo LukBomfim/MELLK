@@ -101,7 +101,10 @@ def inicio():
     tabela.column('qtd', width=100)
     tabela.column('obs', width=300)
 
-    # Adicionei uma scrollbar vertical para a tabela, essencial para grandes quantidades de itens.
+    #config, quando o estoque é baixo
+    tabela.tag_configure('estoque_baixo', background='#FF9999')
+    
+    # Add uma scrollbar vertical para a tabela, essencial para grandes quantidades de itens.
     scrollbar = ttk.Scrollbar(frame_estoque, orient='vertical', command=tabela.yview)
     tabela.configure(yscrollcommand=scrollbar.set)
     tabela.pack(side=tk.LEFT, fill='both', expand=True, padx=10, pady=10)
@@ -139,6 +142,7 @@ def botaoProcurar(pesq, event=None):
 
     # Preencho a tabela com os itens filtrados, formatando valores numéricos com 2 casas decimais.
     for item in resultados:
+        tags_estoque = ('estoque_baixo',) if float(item['qtd']) < 4 else ()
         tabela.insert('', 'end', iid=estoque.index(item), values=(
             item['cod'],
             item['nome'],
@@ -147,7 +151,7 @@ def botaoProcurar(pesq, event=None):
             f"{item['lucro']:.2f}",
             f"{item['qtd']:.2f}",
             item['obs']
-        ))
+        ),tags=tags_estoque)
 
 def limpar(pesq):
     # Limpa todos os campos de pesquisa e atualiza a tabela para mostrar todos os itens.
@@ -441,6 +445,7 @@ def atualizarTabela():
     for item in tabela.get_children():
         tabela.delete(item)
     for item in estoque:
+        tags_estoque = ('estoque_baixo',) if float(item['qtd']) < 4 else ()
         tabela.insert('', 'end', iid=estoque.index(item), values=(
             item['cod'],
             item['nome'],
@@ -449,7 +454,7 @@ def atualizarTabela():
             f"{item['lucro']:.2f}",
             f"{item['qtd']:.2f}",
             item['obs']
-        ))
+        ),tags=tags_estoque)
 
 def salvar(janela, entry, novo=True):
     # Salva um item novo ou editado no arquivo JSON.
