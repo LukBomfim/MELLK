@@ -6,7 +6,7 @@
         "preco_venda": 90000.0,
         "preco_custo": 50000.0,
         "lucro": 80.0,
-        "qtd": 50.0,
+        "qtd": 49.0,
         "obs": "um novo item de alto retorno"
     },
     {
@@ -16,7 +16,7 @@
         "preco_venda": 108.0,
         "preco_custo": 55.0,
         "lucro": 96.36,
-        "qtd": 5.0,
+        "qtd": 3.0,
         "obs": ""
     },
     {
@@ -26,7 +26,7 @@
         "preco_venda": 232.0,
         "preco_custo": 22.0,
         "lucro": 954.55,
-        "qtd": 2.0,
+        "qtd": 1.0,
         "obs": ""
     },
     {
