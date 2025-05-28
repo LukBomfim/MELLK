@@ -283,20 +283,20 @@ def venda():
     qtd_entry = tk.Entry(item_frame, font=fonte, width=10, bg='#E5E5E5', fg='#000000', insertbackground='#000000')
     qtd_entry.insert(0, '1.00')
     qtd_entry.pack(side=tk.LEFT, padx=5)
-    
+
     # Rótulo e campo pro nome do produto
     tk.Label(item_frame, text='Nome do Produto:', font=fonte, fg='white', bg="#1A3C34").pack(side=tk.LEFT, padx=(10, 5))
-    nome_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#3b3b3b', width=30,relief="sunken",bd=3)
+    nome_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#3b3b3b', width=30, relief="sunken", bd=3)
     nome_label.pack(side=tk.LEFT, padx=5)
-    
+
     # Rótulo e campo pro valor unitário
     tk.Label(item_frame, text='Valor Unit.:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT, padx=(10, 5))
-    preco_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#3b3b3b', width=10,relief="sunken",bd=3)
+    preco_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#3b3b3b', width=10, relief="sunken", bd=3)
     preco_label.pack(side=tk.LEFT, padx=5)
-    
+
     # Rótulo e campo pra quantidade disponível
     tk.Label(item_frame, text='Disponível:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT, padx=(10, 5))
-    disp_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#3b3b3b', width=10,relief="sunken",bd=3)
+    disp_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#3b3b3b', width=10, relief="sunken", bd=3)
     disp_label.pack(side=tk.LEFT, padx=5)
 
     # Botão pra adicionar o item
@@ -306,24 +306,27 @@ def venda():
 
     # Faz a busca do item enquanto o usuário digita o código
     cod_entry.bind('<KeyRelease>', lambda event: item_por_cod(event, cod_entry, nome_label, preco_label, disp_label))
-    
-    #Ao clicar enter, adiciona ...
-    cod_entry.bind('<Return>', lambda event: adicionarItemPorCodigo(cod_entry, nome_label, preco_label, qtd_entry,disp_label,frame))
-    
-    #Exibindo o valor total 
+
+    # Ao clicar enter, adiciona ...
+    cod_entry.bind('<Return>',
+                   lambda event: adicionarItemPorCodigo(cod_entry, nome_label, preco_label, qtd_entry, disp_label,
+                                                        frame))
+
+    # Exibindo o valor total
     total_frame = tk.Frame(frame, bg='#1A3C34')
     total_frame.pack(pady=10)
     tk.Label(total_frame, text='Valor Total:', font=fonte_bold, fg='white', bg='#1A3C34').pack(side=tk.LEFT)
-    valorTotalLabel = tk.Label(total_frame, text=f'R$ {valorTotal:.2f}', font=fonte_bold, fg='white', bg='#1A3C34',bd=1,relief="raised")
+    valorTotalLabel = tk.Label(total_frame, text=f'R$ {valorTotal:.2f}', font=fonte_bold, fg='white', bg='#1A3C34',
+                               bd=1, relief="raised")
     valorTotalLabel.pack(side=tk.LEFT, padx=5)
-    
+
     # Frame para a tabela e barra de rolagem
     table_frame = tk.Frame(frame, bg='#1A3C34')
     table_frame.pack(fill='both', expand=True, padx=20, pady=10)
-    
+
     # Tabela pra listar os itens da venda
     colunas = ['cod', 'nome', 'preco_venda', 'qtd', 'total']
-    
+
     itensLista = ttk.Treeview(table_frame, columns=colunas, show='headings', height=10)
     itensLista.heading('cod', text='Código')
     itensLista.heading('nome', text='Nome')
@@ -335,27 +338,33 @@ def venda():
     itensLista.column('preco_venda', width=100)
     itensLista.column('qtd', width=100)
     itensLista.column('total', width=100)
-    
+
     scrollbar = ttk.Scrollbar(table_frame, orient='vertical', command=itensLista.yview)
     itensLista.configure(yscrollcommand=scrollbar.set)
     itensLista.pack(side=tk.LEFT, fill='both', expand=True)
     scrollbar.pack(side=tk.RIGHT, fill='y')
-    
+
     # Botões pra gerenciar a venda, organizados em duas colunas abaixo da tabela
     button_frame = tk.Frame(frame, bg='#1A3C34')
     button_frame.pack(pady=10)
-    
-    tk.Button(button_frame, text='Add. Item do Estoque', command=itemEstoque, **button_style).pack(padx=5,side=tk.LEFT)
-    tk.Button(button_frame, text='Add. Item Avulso', command=itemAvulso, **button_style).pack(padx=5,side=tk.LEFT)
-    tk.Button(button_frame, text='Excluir Item', command=lambda: excluirItem(itensLista, frame), **button_style).pack(padx=5,side=tk.LEFT)
-    tk.Button(button_frame, text='Cancelar Venda', command=lambda: cancelarVenda(frame), **button_style).pack(padx=5,side=tk.LEFT)
-    tk.Button(button_frame, text='Finalizar Venda', command=lambda: finalizarVenda([num_venda, cliente, itens]), **button_style).pack(padx=5,side=tk.LEFT)
-    
+
+    tk.Button(button_frame, text='Add. Item do Estoque', command=itemEstoque, **button_style).pack(padx=5, side=tk.LEFT)
+    tk.Button(button_frame, text='Add. Item Avulso', command=itemAvulso, **button_style).pack(padx=5, side=tk.LEFT)
+    tk.Button(button_frame, text='Excluir Item', command=lambda: excluirItem(itensLista, frame), **button_style).pack(
+        padx=5, side=tk.LEFT)
+    tk.Button(button_frame, text='Cancelar Venda', command=lambda: cancelarVenda(frame), **button_style).pack(padx=5,
+                                                                                                              side=tk.LEFT)
+    tk.Button(button_frame, text='Finalizar Venda', command=lambda: finalizarVenda([num_venda, cliente, itens]),
+              **button_style).pack(padx=5, side=tk.LEFT)
+
     itensLista.bind('<Delete>', lambda event: excluirItem(itensLista, frame))
-    
+
+
 def adicionarItemPorCodigo(cod_entry, nome_label, preco_label, qtd_entry, disp_label, parent):
     # Adiciona um item à venda usando o código digitado
     global itens
+
+    estoque = receberEstoque()
 
     cod = cod_entry.get()
     nome = nome_label['text']
@@ -370,6 +379,7 @@ def adicionarItemPorCodigo(cod_entry, nome_label, preco_label, qtd_entry, disp_l
 
     # Tenta converter os valores pra números
     try:
+        cod_val = int(cod)
         preco_val = float(preco.replace('R$ ', ''))
         qtd_val = float(qtd)
         disp_val = float(disp)
@@ -387,7 +397,7 @@ def adicionarItemPorCodigo(cod_entry, nome_label, preco_label, qtd_entry, disp_l
         confirm = messagebox.askyesnocancel('Estoque Indisponível',
                                             f'Quantidade disponível em estoque ({disp_val}), é insuficiente.\n'
                                             f'Deseja adicionar mesmo assim?',
-                             parent=parent)
+                                            parent=parent)
         if not confirm:
             return
 
@@ -399,7 +409,16 @@ def adicionarItemPorCodigo(cod_entry, nome_label, preco_label, qtd_entry, disp_l
 
     # Calcula o total e cria o item
     total = preco_val * qtd_val
+
+    for i in estoque:
+        if cod_val == i['cod']:
+            univ_cod = i['univ_cod']
+            break
+    else:
+        univ_cod = ''
+
     item = {
+        'univ_cod': univ_cod,
         'cod': cod,
         'nome': nome,
         'preco_venda': preco_val,
@@ -417,6 +436,7 @@ def adicionarItemPorCodigo(cod_entry, nome_label, preco_label, qtd_entry, disp_l
     qtd_entry.delete(0, tk.END)
     qtd_entry.insert(0, '1.00')
     disp_label.configure(text='')
+
 
 def item_por_cod(e, c, no, v, d):
     # Busca item no estoque enquanto o usuário digita o código
@@ -439,6 +459,7 @@ def item_por_cod(e, c, no, v, d):
             no.configure(text='')  # Se não achar, limpa
             v.configure(text='')
             d.configure(text='')
+
 
 def finalizarVenda(inf_vendas):
     # Tela pra finalizar a venda e processar o pagamento
@@ -746,7 +767,10 @@ def finalizarVenda(inf_vendas):
                                                                                                          padx=5)
     tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
 
+
 def fecharVenda(venda, restante, j, bruto, desconto):
+    estoque = receberEstoque()
+
     # Salva a venda e fecha a janela
     if restante > 0:
         messagebox.showerror('Pagamento inválido', 'Pagamento menor que o valor total', parent=j)
@@ -766,6 +790,18 @@ def fecharVenda(venda, restante, j, bruto, desconto):
         with open('vendas.json', 'w', encoding='utf-8') as arq:
             json.dump([venda], arq, indent=4, ensure_ascii=False)
 
+    # Remoção do item do estoque
+    # Optei por 'univ_cod' ao invés do 'cod', para evitar erro caso haja alteração no cadastro
+    for item in venda['itens']:
+        for produto in estoque:
+            if item['univ_cod'] == produto['univ_cod']:
+                produto['qtd'] -= item['qtd']
+                break
+
+    # Aplicação da alteração no estoque
+    with open('estoque.json', 'w', encoding='utf-8') as arq:
+        json.dump(estoque, arq, indent=4, ensure_ascii=False)
+
     # Pergunta se quer gerar recibo
     recibo = messagebox.askyesno('Recibo:', 'Deseja imprimir um recibo da venda?', parent=j)
     if recibo:
@@ -774,94 +810,89 @@ def fecharVenda(venda, restante, j, bruto, desconto):
     root.geometry('1000x500')
     frameInicial.tkraise()  # Volta pra tela inicial
 
-def gerarRecibo(venda, troco=0, bruto=0, desconto=0):
-    # Cria um recibo em PDF com layout bem alinhado
-    arq = f'recibo_venda{venda["num_venda"]}.pdf'
-    recibo = canvas.Canvas(arq, pagesize=A4)  # Página A4 (595x842 pontos)
-    largura, altura = A4  # Dimensões da página
-    margem = 20  # Margem pequena pra usar mais espaço
-    recibo.setFont('Courier', 12)  # Fonte monoespaçada pra alinhamento fácil
-    recibo.setTitle(f'Recibo de Venda N°{venda["num_venda"]}')
-    y = altura - margem - 40  # Começa um pouco mais abaixo pra caber título
 
-    def linha(t, s=14, centro=False):
-        # Escreve uma linha no PDF, com opção de centralizar
+def gerarRecibo(venda, troco=0, bruto=0, desconto=0):
+    # ciando arquivo do recibo em Pdff
+    arq = f'recibo_venda{venda["num_venda"]}.pdf'
+    
+    # Tamanho da página
+    page_size = (227, 280)
+    recibo = canvas.Canvas(arq, pagesize=page_size)
+    largura, altura = page_size
+    margem = 10  # margem
+    
+    recibo.setFont('Courier', 6)  # fonte
+    recibo.setTitle(f'Recibo de Venda N°{venda["num_venda"]}')
+    y = altura - margem - 20  # inicio 
+
+    def linha(t, s=10, centro=False):
+        # escreve uma linha no PDF
         nonlocal y
-        if y < margem + 60:  # Se tá quase no fim, cria nova página
+        if y < margem + 20:  # nova página
             recibo.showPage()
-            recibo.setFont('Courier', 12)
-            y = altura - margem - 40
+            recibo.setFont('Courier', 8)
+            y = altura - margem - 20
         if centro:
-            recibo.drawCentredString(largura / 2, y, t)  # Centraliza na página
+            recibo.drawCentredString(largura / 2, y, t)
         else:
-            recibo.drawString(margem, y, t)  # Alinha à esquerda
+            recibo.drawString(margem, y, t)
         y -= s
 
-    # Título grande e centralizado
-    recibo.setFont('Courier-Bold', 14)
-    linha(f'RECIBO DA VENDA N°{venda["num_venda"]}', centro=True, s=20)
-    recibo.setFont('Courier', 12)
-    linha('-' * 80, s=18)  # Separador longo pra preencher a página
+    # Título
+    recibo.setFont('Courier-Bold', 10)
+    linha(f'RECIBO VENDA {venda["num_venda"]}', centro=True, s=12)
+    recibo.setFont('Courier', 8)
+    linha('-' * 40, s=10)
 
-    # Dados do cliente, alinhados à esquerda com prefixo fixo
-    linha(f'CLIENTE:  {venda["cliente"]["nome"]:<50}')
-    linha(f'TELEFONE: {venda["cliente"]["telefone"]:<50}')
-    linha(f'CPF/CNPJ: {venda["cliente"]["cpf_cnpj"]:<50}')
-    linha(f'E-MAIL:   {venda["cliente"]["email"]:<50}')
-    linha('-' * 80, s=18)
+    # Dados do cliente
+    linha(f'CLIENTE: {venda["cliente"]["nome"][:20]:<20}')
+    linha(f'CPF/CNPJ: {venda["cliente"]["cpf_cnpj"]:<20}')
+    linha('-' * 40, s=10)
 
-    # Tabela de itens com colunas bem espaçadas
-    linha(f'{"PRODUTO":<30}{"VLR.UNIT.":>12}{"QTD":>8}{"TOTAL":>12}')
-    linha('-' * 80, s=16)
-
-    # Lista os itens da venda
+    # Tabela de itens
+    linha(f'{"ITEM":<20}{"VAL":>8}{"QTD":>6}{"TOTAL":>8}')
+    linha('-' * 40, s=8)
     for item in venda['itens']:
-        nome = item['nome'][:30]  # Nome maior para usar mais espaço
+        nome = item['nome'][:20]
         valor = float(item['preco_venda'])
         qtd = float(item['qtd'])
         total = float(item['total'])
-        linha(f'{nome:<30}{valor:>12.2f}{qtd:>8.1f}{total:>12.2f}')
+        linha(f'{nome:<20}{valor:>8.2f}{qtd:>6.1f}{total:>8.2f}')
 
-    # Total geral, alinhado à direita
+    # Totais
     totalfinal = float(venda['total'])
-    linha('-' * 80, s=18)
-    linha(f'{"TOTAL BRUTO:":>50} R$ {bruto:>10.2f}')
-    linha(f'{"DESCONTO:":>50} R$ {desconto:>10.2f}')
-    linha(f'{"VALOR FINAL:":>50} R$ {totalfinal:>10.2f}')
-    linha('-' * 80, s=18)
+    linha('-' * 40, s=10)
+    linha(f'{"BRUTO:":>26} R${bruto:>8.2f}')
+    linha(f'{"DESCONTO:":>26} R${desconto:>8.2f}')
+    linha(f'{"FINAL:":>26} R${totalfinal:>8.2f}')
+    linha('-' * 40, s=8)
 
-    linha(' ' * 80, s=18)
-    # Formas de pagamento em tabela clara
-    linha(f'FORMAS DE PAGAMENTO', centro=True)
-    linha('-' * 80, s=16)
-    linha(f'{"TIPO":<20}{"VALOR":>15}{"OBSERVAÇÃO":>25}')
-    linha('-' * 80, s=16)
-
-    # Lista as formas de pagamento
+    # Formas de pagamento
+    linha('PAGAMENTOS', centro=True)
+    linha('-' * 40, s=8)
+    linha(f'{"TIPO":<15}{"VALOR":>10}')
+    linha('-' * 40, s=8)
     for k, v in venda['pagamento'].items():
         forma = k
         valor = 0
-        obs = ''
         if forma == 'Credito':
             for pag in v:
                 valor = float(pag['valor'])
-                obs = f'Parcelas: {pag["parcelas"]}'
-                linha(f'{forma:<20}{valor:>15.2f}{obs:>25}')
+                linha(f'{forma[:15]:<15}{valor:>10.2f}')
         elif forma == 'Pix' or forma == 'Debito':
             valor = sum(v)
             if valor > 0:
-                linha(f'{forma:<20}{valor:>15.2f}{obs:>25}')
+                linha(f'{forma[:15]:<15}{valor:>10.2f}')
         else:
             valor = v
             if valor > 0:
-                linha(f'{forma:<20}{valor:>15.2f}{obs:>25}')
+                linha(f'{forma[:15]:<15}{valor:>10.2f}')
 
-    # Troco e separador final
-    linha('-' * 80, s=18)
-    linha(f'{"TROCO:":<50} R$ {troco:<10.2f}', s=20)
+    # Troco
+    linha('-' * 40, s=8)
+    linha(f'{"TROCO:":<15} R${troco:>10.2f}')
 
-    # Rodapé com data e hora
-    recibo.setFont('Courier', 10)
+    recibo.setFont('Courier', 6)
 
     recibo.save()
     os.startfile(arq)  # Abre o PDF (só funciona no Windows)
@@ -880,7 +911,6 @@ def desc(e, j, d, t, pago, entryTotal, restante):
         messagebox.showerror('Erro', 'Desconto maior que o total', parent=j)
         return
 
-
     entryTotal.configure(state='normal')
     entryTotal.delete(0, tk.END)
     entryTotal.insert(0, f'{novoTotal:.2f}')
@@ -890,6 +920,7 @@ def desc(e, j, d, t, pago, entryTotal, restante):
     restante.delete(0, tk.END)
     restante.insert(0, f'{novoRestante:.2f}')
     restante.configure(state='disabled')
+
 
 def itemEstoque():
     # Janela pra adicionar item do estoque
@@ -948,6 +979,7 @@ def itemEstoque():
         side=tk.LEFT, padx=5)
     tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
 
+
 def addItemEstoque(dados, j):
     # Adiciona item do estoque à venda
     global itens
@@ -997,6 +1029,7 @@ def addItemEstoque(dados, j):
     atualizarValorTotal()
     j.destroy()
 
+
 def totalItem(e, v, q, t):
     # Calcula o total do item (preço x quantidade)
     try:
@@ -1012,6 +1045,7 @@ def totalItem(e, v, q, t):
         t.delete(0, tk.END)
         t.insert(0, f'R$ {total:.2f}')
         t.configure(state='disabled')
+
 
 def itemAvulso():
     # Janela pra adicionar item que não tá no estoque
@@ -1061,6 +1095,7 @@ def itemAvulso():
         side=tk.LEFT, padx=5)
     tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
 
+
 def addItemAvulso(dados, j):
     # Adiciona item avulso à venda
     global itens
@@ -1081,6 +1116,7 @@ def addItemAvulso(dados, j):
         return
 
     item = {
+        'univ_cod': None,
         'cod': 'Avulso',
         'nome': nome,
         'preco_venda': venda_val,
@@ -1091,6 +1127,7 @@ def addItemAvulso(dados, j):
     atualizarItensLista()
     atualizarValorTotal()
     j.destroy()
+
 
 def excluirItem(l, f):
     # Remove um item da venda
@@ -1109,6 +1146,7 @@ def excluirItem(l, f):
         atualizarItensLista()
         atualizarValorTotal()
 
+
 def cancelarVenda(f):
     # Cancela a venda e volta pra tela inicial
     global num_venda
@@ -1117,6 +1155,7 @@ def cancelarVenda(f):
         root.geometry('1000x500')
         f.destroy()
         frameInicial.tkraise()
+
 
 def atualizarItensLista():
     # Atualiza a tabela de itens na tela
@@ -1134,11 +1173,13 @@ def atualizarItensLista():
             f"{item['total']:.2f}",
         ))
 
+
 def atualizarValorTotal():
     # Atualiza o valor total mostrado na tela
     global itens, valorTotal, valorTotalLabel
     valorTotal = sum(item['total'] for item in itens)
     valorTotalLabel.configure(text=f'R$ {valorTotal:.2f}')
+
 
 def procurarItem(d, j):
     # Janela pra buscar itens no estoque
@@ -1245,6 +1286,7 @@ def procurarItem(d, j):
               **button_style).pack(side=tk.LEFT, padx=5)
     tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
 
+
 def entryNumFloat(n):
     # Valida se a entrada é um número decimal
     if n == '':
@@ -1255,6 +1297,7 @@ def entryNumFloat(n):
     except:
         return False
 
+
 def entryNumInt(n):
     # Valida se a entrada é um número inteiro
     if n == '':
@@ -1264,6 +1307,7 @@ def entryNumInt(n):
         return True
     except:
         return False
+
 
 def orcamento():
     # Função placeholder pro orçamento, ainda não tá implementada
