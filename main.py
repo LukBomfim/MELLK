@@ -24,24 +24,17 @@ menuInicial = tk.Tk()
 menuInicial.title('MELLK - Sistema de Vendas')
 menuInicial.configure(bg='#1A3C34')
 
+menuInicial.state("zoomed")
+largura_tela = menuInicial.winfo_screenwidth()
+altura_tela = menuInicial.winfo_screenheight()
+
+menuInicial.geometry(f'{largura_tela}x{altura_tela}')
+
+
 # Mudando o icon padrão do Tk
 icon_path = os.path.join(script_dir, "mellk-logo.png")
 icon_image = ImageTk.PhotoImage(file=icon_path)
 menuInicial.iconphoto(True, icon_image)
-
-# === Centralização da janela ===
-
-largura_tela = menuInicial.winfo_screenwidth()
-altura_tela = menuInicial.winfo_screenheight()
-
-largura_janela = largura_tela - 150
-altura_janela = altura_tela - 150
-
-pos_x = (largura_tela - largura_janela) // 2
-pos_y = (altura_tela - altura_janela - 150) // 2
-
-menuInicial.geometry(f'{largura_janela}x{altura_janela}+{pos_x}+{pos_y}')
-# ================================
 
 # FRAME PARA O CABEÇALHO
 header_frame = tk.Frame(menuInicial, bg='#1A3C34')

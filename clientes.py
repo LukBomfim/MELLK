@@ -8,6 +8,7 @@ i = 0
 flagCPF = False
 flagCEP = False
 flagEmail = False
+cod = 0  # Código global para novos clientes, inicializado como 0
 
 def inicio():
     global root
@@ -43,8 +44,12 @@ def ver_cadastros():
     fonte = ('Arial', 12)
     fonte_bold = ('Arial', 14, 'bold')
 
-    with open('clientes.json', 'r', encoding='utf-8') as arq:
-        clientes = json.load(arq)
+    # Carrega os clientes do arquivo JSON, com tratamento para arquivo vazio
+    try:
+        with open('clientes.json', 'r', encoding='utf-8') as arq:
+            clientes = json.load(arq)
+    except (FileNotFoundError, json.JSONDecodeError):
+        clientes = []
 
     # FRAME PRINCIPAL
     frame_verclientes = tk.Frame(root, bg='#1A3C34')
@@ -57,6 +62,16 @@ def ver_cadastros():
              text='Nenhum cliente cadastrado.\nCadastre seu primeiro cliente abaixo:',
              font=fonte_bold, fg='white', bg='#1A3C34').place(relx=0.5, rely=0.4, anchor='center')
     botaoNovoCliente(frame_semcliente)
+
+    if not clientes:
+        frame_semcliente.tkraise()
+        return
+
+    # Ajusta o índice i para evitar acessar cliente inexistente
+    if i >= len(clientes):
+        i = len(clientes) - 1
+    elif i < 0:
+        i = 0
 
     # CABEÇALHO
     tk.Label(frame_verclientes, text=f'Cliente {i+1} de {len(clientes)}', font=fonte_bold, fg='white', bg='#1A3C34').pack(pady=20)
@@ -71,34 +86,35 @@ def ver_cadastros():
     tk.Button(nav_frame, text='Pesquisar', command=pesquisar, **button_style).pack(side=tk.LEFT, padx=5)
     botaoNovoCliente(frame_verclientes)
 
-    if not clientes:
-        frame_semcliente.tkraise()
-    else:
-        l = ['Nome', 'Telefone', 'CPF/CNPJ', 'CEP', 'Número', 'E-mail']
-        k = ['nome', 'telefone', 'cpf_cnpj', 'cep', 'num_casa', 'email']
-        cliente = clientes[i]
+    l = ['Nome', 'Telefone', 'CPF/CNPJ', 'CEP', 'Número', 'E-mail']
+    k = ['nome', 'telefone', 'cpf_cnpj', 'cep', 'num_casa', 'email']
+    cliente = clientes[i]
 
-        entrys = {}
-        for idx, field in enumerate(k):
-            tk.Label(frame_verclientes, text=l[idx], font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
-            entry = tk.Entry(frame_verclientes, font=fonte, width=30, state='disabled', disabledbackground='#E5E5E5')
-            entry.pack(pady=2)
-            entrys[field] = entry
+    entrys = {}
+    for idx, field in enumerate(k):
+        tk.Label(frame_verclientes, text=l[idx], font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
+        entry = tk.Entry(frame_verclientes, font=fonte, width=30, state='disabled', disabledbackground='#E5E5E5')
+        entry.pack(pady=2)
+        entrys[field] = entry
 
-        for c in entrys.keys():
-            entrys[c].config(state='normal')
-            entrys[c].delete(0, tk.END)
-            entrys[c].insert(0, cliente[c])
-            entrys[c].config(state='disabled')
+    for c in entrys.keys():
+        entrys[c].config(state='normal')
+        entrys[c].delete(0, tk.END)
+        entrys[c].insert(0, cliente[c])
+        entrys[c].config(state='disabled')
 
-        frame_verclientes.tkraise()
+    frame_verclientes.tkraise()
 
 def novoCliente():
     global nomeEntry, telefoneEntry, cpf_cnpjEntry, cepEntry, num_casaEntry, emailEntry, cod
 
-    with open('clientes.json', 'r', encoding='utf-8') as arq:
-        clientes = json.load(arq)
-        cod = 1 if not clientes else clientes[-1]['cod'] + 1
+    # Carrega os clientes para gerar um novo código
+    try:
+        with open('clientes.json', 'r', encoding='utf-8') as arq:
+            clientes = json.load(arq)
+            cod = 1 if not clientes else max(c['cod'] for c in clientes) + 1
+    except (FileNotFoundError, json.JSONDecodeError):
+        cod = 1
 
     # CRIANDO JANELA DE CADASTRO
     janela = tk.Toplevel(root)
@@ -204,6 +220,7 @@ def formCEP(e):
 def formEmail(e):
     global flagEmail
     email = emailEntry.get().lower()
+    #regex para  verificar e-mail
     padrao = r'^[\w\.-]+@[\w\.-]+\.\w+$'
     flagEmail = not (re.match(padrao, email) or email == '')
     emailEntry.configure(bg='pink' if flagEmail else 'white')
@@ -211,28 +228,55 @@ def formEmail(e):
     emailEntry.insert(0, email)
 
 def salva_NovoCliente():
-    global i, flagCPF, flagCEP, flagEmail
+    global i, flagCPF, flagCEP, flagEmail, cod
     if nomeEntry.get() == '' or flagCPF or flagCEP or flagEmail:
-        messagebox.showerror('Erro', 'Confira os dados e tente novamente.')
-    else:
-        cliente = {
-            "cod": cod,
-            "nome": nomeEntry.get().upper(),
-            "telefone": telefoneEntry.get(),
-            "cpf_cnpj": cpf_cnpjEntry.get(),
-            "cep": cepEntry.get(),
-            "num_casa": num_casaEntry.get(),
-            "email": emailEntry.get()
-        }
+        messagebox.showerror('Erro', 'Confira os dados e tente novamente.', parent=nomeEntry.winfo_toplevel())
+        return
+
+    # Carrega os clientes para verificar duplicatas
+    try:
+        with open('clientes.json', 'r', encoding='utf-8') as arq:
+            clientes = json.load(arq)
+    except (FileNotFoundError, json.JSONDecodeError):
+        clientes = []
+
+    # Verificando se o CPF/CNPJ já existe...
+    cpf_cnpj = cpf_cnpjEntry.get()
+    if any(c['cpf_cnpj'] == cpf_cnpj for c in clientes):
+        messagebox.showerror('Erro', 'CPF/CNPJ já cadastrado.', parent=nomeEntry.winfo_toplevel())
+        return
+
+    cliente = {
+        "cod": cod,
+        "nome": nomeEntry.get().upper(),
+        "telefone": telefoneEntry.get(),
+        "cpf_cnpj": cpf_cnpj,
+        "cep": cepEntry.get(),
+        "num_casa": num_casaEntry.get(),
+        "email": emailEntry.get()
+    }
+
+    try:
         with open('clientes.json', 'r+', encoding='utf-8') as arq:
             clientes = json.load(arq)
             clientes.append(cliente)
             arq.seek(0)
             json.dump(clientes, arq, indent=4, ensure_ascii=False)
             arq.truncate()
-        i = len(clientes)
-        ver_cadastros()
-        nomeEntry.winfo_toplevel().destroy()  # Fecha a janela de cadastro
+    except (FileNotFoundError, json.JSONDecodeError):
+        with open('clientes.json', 'w', encoding='utf-8') as arq:
+            json.dump([cliente], arq, indent=4, ensure_ascii=False)
+
+    # Incrementa o código para o próximo cliente
+    cod += 1
+    i = len(clientes)
+
+    # Fecha a janela de cadastro antes de atualizar a interface
+    janela = nomeEntry.winfo_toplevel()
+    janela.destroy()
+
+    # Atualiza a interface
+    ver_cadastros()
 
 def botaoNovoCliente(f):
     tk.Button(f, text='Novo Cliente', command=novoCliente, **button_style).place(relx=0.5, y=(root.winfo_screenheight())//2+100, anchor='center')

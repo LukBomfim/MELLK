@@ -102,7 +102,8 @@ def inicio():
     tabela.column('obs', width=300)
 
     #config, quando o estoque é baixo
-    tabela.tag_configure('estoque_baixo', background='#FF9999')
+    tabela.tag_configure('estoque_baixo', background="#FFF799")
+    tabela.tag_configure('estoque_zerado', background='#FF9999')
     
     # Add uma scrollbar vertical para a tabela, essencial para grandes quantidades de itens.
     scrollbar = ttk.Scrollbar(frame_estoque, orient='vertical', command=tabela.yview)
@@ -136,13 +137,21 @@ def botaoProcurar(pesq, event=None):
            (obs == '' or obs in item['obs'])
     ]
 
-    # Limpo a tabela antes de exibir os resultados.
+    # limpando a tabela antes de exibir os resultados.
     for produto in tabela.get_children():
         tabela.delete(produto)
 
-    # Preencho a tabela com os itens filtrados, formatando valores numéricos com 2 casas decimais.
+    # preenche a tabela com os itens filtrados, formatando valores numéricos com 2 casas decimais.
     for item in resultados:
-        tags_estoque = ('estoque_baixo',) if float(item['qtd']) < 4 else ()
+        qtd = float(item['qtd'])
+
+        if qtd < 1:
+            tags_estoque = ('estoque_zerado',)
+        elif qtd < 25:
+            tags_estoque = ('estoque_baixo',)
+        else:
+            tags_estoque = ()
+
         tabela.insert('', 'end', iid=estoque.index(item), values=(
             item['cod'],
             item['nome'],
@@ -154,14 +163,14 @@ def botaoProcurar(pesq, event=None):
         ),tags=tags_estoque)
 
 def limpar(pesq):
-    # Limpa todos os campos de pesquisa e atualiza a tabela para mostrar todos os itens.
+    # Limpa todos os campos de pesquisa e atualiza a tabela para mostrar todos os itens
     for p in pesq:
         p.delete(0, tk.END)
     botaoProcurar(pesq)
 
 def editar(event=None):
-    # Função para editar um item selecionado na tabela.
-    # Verifico se um item está selecionado.
+    # Função para editar um item selecionado na tabela
+    # Verifico se um item está selecionado
     ind = tabela.focus()
     if not ind:
         messagebox.showinfo('Aviso', 'Selecione um item para editar.',parent=root)
@@ -445,7 +454,15 @@ def atualizarTabela():
     for item in tabela.get_children():
         tabela.delete(item)
     for item in estoque:
-        tags_estoque = ('estoque_baixo',) if float(item['qtd']) < 4 else ()
+        qtd = float(item['qtd'])
+
+        if qtd < 1:
+            tags_estoque = ('estoque_zerado',)
+        elif qtd < 25:
+            tags_estoque = ('estoque_baixo',)
+        else:
+            tags_estoque = ()
+
         tabela.insert('', 'end', iid=estoque.index(item), values=(
             item['cod'],
             item['nome'],

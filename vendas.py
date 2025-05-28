@@ -3,7 +3,6 @@ from tkinter import ttk, messagebox
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 import json, os
-from datetime import datetime
 
 # Estilo pros botões, pra deixar tudo com a mesma cara
 # Aqui a gente define como os botões vão ficar: fonte, cor, tamanho, tudo padronizado
@@ -19,6 +18,7 @@ button_style = {
     'cursor': 'hand2',
     'relief': 'flat'
 }
+
 
 def inicio():
     # Essa função monta a tela inicial do módulo de vendas
@@ -38,17 +38,22 @@ def inicio():
     # Frame pro cabeçalho, só pro título ficar bonitinho
     header_frame = tk.Frame(frameInicial, bg='#1A3C34')
     header_frame.pack(pady=20)
-    tk.Label(header_frame, text="Sistema de Vendas - Módulo Vendas", font=('Arial', 16, 'bold'), fg='white', bg='#1A3C34').pack()
+    tk.Label(header_frame, text="Sistema de Vendas - Módulo Vendas", font=('Arial', 16, 'bold'), fg='white',
+             bg='#1A3C34').pack()
 
     # Frame pros botões principais, bem no meio da tela
     button_frame = tk.Frame(frameInicial, bg='#1A3C34')
     button_frame.pack(expand=True)
-    tk.Button(button_frame, text='Nova Venda Direta', command=vendaDireta, **button_style).pack(pady=10)  # Venda rápida, sem cliente específico
-    tk.Button(button_frame, text='Novo Pedido', command=vendaPedido, **button_style).pack(pady=10)  # Pedido com cliente cadastrado
-    tk.Button(button_frame, text='Novo Orçamento', command=orcamento, **button_style).pack(pady=10)  # Orçamento, mas ainda não tá pronto
+    tk.Button(button_frame, text='Nova Venda Direta', command=vendaDireta, **button_style).pack(
+        pady=10)  # Venda rápida, sem cliente específico
+    tk.Button(button_frame, text='Novo Pedido', command=vendaPedido, **button_style).pack(
+        pady=10)  # Pedido com cliente cadastrado
+    tk.Button(button_frame, text='Novo Orçamento', command=orcamento, **button_style).pack(
+        pady=10)  # Novo orçamento
 
     # Mantém a janela aberta, rodando o loop principal
     root.mainloop()
+
 
 def receberEstoque():
     # Pega os itens do estoque de um arquivo JSON
@@ -58,6 +63,7 @@ def receberEstoque():
     except FileNotFoundError:
         return []  # Se não achar o arquivo, retorna uma lista vazia
 
+
 def receberClientes():
     # Carrega os clientes de um arquivo JSON
     try:
@@ -65,6 +71,7 @@ def receberClientes():
             return json.load(arq)  # Devolve a lista de clientes
     except FileNotFoundError:
         return []  # Se o arquivo não existir, retorna lista vazia
+
 
 def vendaDireta():
     # Começa uma venda direta, sem precisar escolher cliente
@@ -79,6 +86,7 @@ def vendaDireta():
         "email": ""
     }  # Cliente padrão pra vendas rápidas
     venda()  # Abre a tela de venda
+
 
 def vendaPedido():
     # Inicia um pedido, mas precisa escolher um cliente primeiro
@@ -136,10 +144,13 @@ def vendaPedido():
     # Botões pra procurar ou cancelar
     button_frame = tk.Frame(frame, bg='#1A3C34')
     button_frame.pack(pady=10)
-    tk.Button(button_frame, text='Procurar', command=lambda: buscaCliente(janela, opc, pesquisa, lista), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Procurar', command=lambda: buscaCliente(janela, opc, pesquisa, lista),
+              **button_style).pack(side=tk.LEFT, padx=5)
     tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
     janela.bind('<Return>', lambda event: buscaCliente(janela, opc, pesquisa, lista, event))  # Busca com Enter
-    lista.bind('<Double-1>', lambda event: selecionarClienteVenda(event, janela, lista))  # Seleciona cliente com duplo clique
+    lista.bind('<Double-1>',
+               lambda event: selecionarClienteVenda(event, janela, lista))  # Seleciona cliente com duplo clique
+
 
 def buscaCliente(j, cb, pe, l, e=None):
     # Faz a busca de clientes com base no critério escolhido
@@ -199,6 +210,7 @@ def buscaCliente(j, cb, pe, l, e=None):
             r['cpf_cnpj'],
         ))
 
+
 def selecionarClienteVenda(e, j, l):
     # Seleciona um cliente da tabela e vai pra tela de venda
     global cliente
@@ -214,6 +226,7 @@ def selecionarClienteVenda(e, j, l):
                 break
     except:
         return  # Se não selecionar nada, só ignora
+
 
 def venda():
     # Monta a tela principal de vendas
@@ -242,18 +255,21 @@ def venda():
     # Cabeçalho com número da venda e nome do cliente
     header_frame = tk.Frame(frame, bg='#1A3C34')
     header_frame.pack(pady=10, fill='x')
-    tk.Label(header_frame, text=f'Venda N°{num_venda} - Cliente: {cliente["nome"]}', font=fonte_bold, fg='white', bg='#1A3C34').pack()
+    tk.Label(header_frame, text=f'Venda N°{num_venda} - Cliente: {cliente["nome"]}', font=fonte_bold, fg='white',
+             bg='#1A3C34').pack()
 
     # Mostra os dados do cliente
     cliente_frame = tk.Frame(frame, bg='#1A3C34')
     cliente_frame.pack(pady=10, fill='x', padx=20)
-    tk.Label(cliente_frame, text=f'Telefone: {cliente["telefone"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
-    tk.Label(cliente_frame, text=f'CPF/CNPJ: {cliente["cpf_cnpj"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+    tk.Label(cliente_frame, text=f'Telefone: {cliente["telefone"]}', font=fonte, fg='white', bg='#1A3C34').pack(
+        anchor='w')
+    tk.Label(cliente_frame, text=f'CPF/CNPJ: {cliente["cpf_cnpj"]}', font=fonte, fg='white', bg='#1A3C34').pack(
+        anchor='w')
     tk.Label(cliente_frame, text=f'CEP: {cliente["cep"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
     tk.Label(cliente_frame, text=f'N°: {cliente["num_casa"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
     tk.Label(cliente_frame, text=f'E-mail: {cliente["email"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
 
-# Frame pra adicionar itens pelo código, com rótulos pra cada campo
+    # Frame pra adicionar itens pelo código, com rótulos pra cada campo
     item_frame = tk.Frame(frame, bg='#1A3C34')
     item_frame.pack(pady=10, fill='x', padx=20)
 
@@ -262,43 +278,53 @@ def venda():
     cod_entry = tk.Entry(item_frame, font=fonte, width=10, bg='#E5E5E5', fg='#000000', insertbackground='#000000')
     cod_entry.pack(side=tk.LEFT, padx=5)
 
-    # Rótulo e campo pro nome do produto
-    tk.Label(item_frame, text='Nome do Produto:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT, padx=(10, 5))
-    nome_label = tk.Label(item_frame, text='', font=fonte, fg='#D3D3D3', bg='#2A2A2A', width=30)
-    nome_label.pack(side=tk.LEFT, padx=5)
-
-    # Rótulo e campo pro valor unitário
-    tk.Label(item_frame, text='Valor Unit.:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT, padx=(10, 5))
-    preco_label = tk.Label(item_frame, text='', font=fonte, fg='#D3D3D3', bg='#2A2A2A', width=10)
-    preco_label.pack(side=tk.LEFT, padx=5)
-
     # Rótulo e entrada pra quantidade a vender
     tk.Label(item_frame, text='Quantidade:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT, padx=(10, 5))
     qtd_entry = tk.Entry(item_frame, font=fonte, width=10, bg='#E5E5E5', fg='#000000', insertbackground='#000000')
     qtd_entry.insert(0, '1.00')
     qtd_entry.pack(side=tk.LEFT, padx=5)
-
+    
+    # Rótulo e campo pro nome do produto
+    tk.Label(item_frame, text='Nome do Produto:', font=fonte, fg='white', bg="#1A3C34").pack(side=tk.LEFT, padx=(10, 5))
+    nome_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#3b3b3b', width=30,relief="sunken",bd=3)
+    nome_label.pack(side=tk.LEFT, padx=5)
+    
+    # Rótulo e campo pro valor unitário
+    tk.Label(item_frame, text='Valor Unit.:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT, padx=(10, 5))
+    preco_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#3b3b3b', width=10,relief="sunken",bd=3)
+    preco_label.pack(side=tk.LEFT, padx=5)
+    
     # Rótulo e campo pra quantidade disponível
     tk.Label(item_frame, text='Disponível:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT, padx=(10, 5))
-    disp_label = tk.Label(item_frame, text='', font=fonte, fg='#D3D3D3', bg='#2A2A2A', width=10)
+    disp_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#3b3b3b', width=10,relief="sunken",bd=3)
     disp_label.pack(side=tk.LEFT, padx=5)
-    
+
     # Botão pra adicionar o item
-    tk.Button(item_frame, text='Adicionar', command=lambda: adicionarItemPorCodigo(cod_entry, nome_label, preco_label, qtd_entry, disp_label, frame), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(item_frame, text='Adicionar',
+              command=lambda: adicionarItemPorCodigo(cod_entry, nome_label, preco_label, qtd_entry, disp_label, frame),
+              **button_style).pack(side=tk.LEFT, padx=5)
 
     # Faz a busca do item enquanto o usuário digita o código
     cod_entry.bind('<KeyRelease>', lambda event: item_por_cod(event, cod_entry, nome_label, preco_label, disp_label))
-
-    # Mostra o valor total da venda
+    
+    #Ao clicar enter, adiciona ...
+    cod_entry.bind('<Return>', lambda event: adicionarItemPorCodigo(cod_entry, nome_label, preco_label, qtd_entry,disp_label,frame))
+    
+    #Exibindo o valor total 
     total_frame = tk.Frame(frame, bg='#1A3C34')
     total_frame.pack(pady=10)
     tk.Label(total_frame, text='Valor Total:', font=fonte_bold, fg='white', bg='#1A3C34').pack(side=tk.LEFT)
-    valorTotalLabel = tk.Label(total_frame, text=f'R$ {valorTotal:.2f}', font=fonte_bold, fg='white', bg='#1A3C34')
+    valorTotalLabel = tk.Label(total_frame, text=f'R$ {valorTotal:.2f}', font=fonte_bold, fg='white', bg='#1A3C34',bd=1,relief="raised")
     valorTotalLabel.pack(side=tk.LEFT, padx=5)
-
+    
+    # Frame para a tabela e barra de rolagem
+    table_frame = tk.Frame(frame, bg='#1A3C34')
+    table_frame.pack(fill='both', expand=True, padx=20, pady=10)
+    
     # Tabela pra listar os itens da venda
     colunas = ['cod', 'nome', 'preco_venda', 'qtd', 'total']
-    itensLista = ttk.Treeview(frame, columns=colunas, show='headings', height=10)
+    
+    itensLista = ttk.Treeview(table_frame, columns=colunas, show='headings', height=10)
     itensLista.heading('cod', text='Código')
     itensLista.heading('nome', text='Nome')
     itensLista.heading('preco_venda', text='Valor Unit.')
@@ -309,21 +335,24 @@ def venda():
     itensLista.column('preco_venda', width=100)
     itensLista.column('qtd', width=100)
     itensLista.column('total', width=100)
-    scrollbar = ttk.Scrollbar(frame, orient='vertical', command=itensLista.yview)
+    
+    scrollbar = ttk.Scrollbar(table_frame, orient='vertical', command=itensLista.yview)
     itensLista.configure(yscrollcommand=scrollbar.set)
-    itensLista.pack(side=tk.LEFT, fill='both', expand=True, padx=10, pady=10)
+    itensLista.pack(side=tk.LEFT, fill='both', expand=True)
     scrollbar.pack(side=tk.RIGHT, fill='y')
-
-    # Botões pra gerenciar a venda
+    
+    # Botões pra gerenciar a venda, organizados em duas colunas abaixo da tabela
     button_frame = tk.Frame(frame, bg='#1A3C34')
     button_frame.pack(pady=10)
-    tk.Button(button_frame, text='Add. Item do Estoque', command=itemEstoque, **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Add. Item Avulso', command=itemAvulso, **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Excluir Item', command=lambda: excluirItem(itensLista, frame), **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Cancelar Venda', command=lambda: cancelarVenda(frame), **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Finalizar Venda', command=lambda: finalizarVenda([num_venda, cliente, itens]), **button_style).pack(side=tk.LEFT, padx=5)
-    itensLista.bind('<Delete>', lambda event: excluirItem(itensLista, frame))  # Deleta item com tecla Delete
-
+    
+    tk.Button(button_frame, text='Add. Item do Estoque', command=itemEstoque, **button_style).pack(padx=5,side=tk.LEFT)
+    tk.Button(button_frame, text='Add. Item Avulso', command=itemAvulso, **button_style).pack(padx=5,side=tk.LEFT)
+    tk.Button(button_frame, text='Excluir Item', command=lambda: excluirItem(itensLista, frame), **button_style).pack(padx=5,side=tk.LEFT)
+    tk.Button(button_frame, text='Cancelar Venda', command=lambda: cancelarVenda(frame), **button_style).pack(padx=5,side=tk.LEFT)
+    tk.Button(button_frame, text='Finalizar Venda', command=lambda: finalizarVenda([num_venda, cliente, itens]), **button_style).pack(padx=5,side=tk.LEFT)
+    
+    itensLista.bind('<Delete>', lambda event: excluirItem(itensLista, frame))
+    
 def adicionarItemPorCodigo(cod_entry, nome_label, preco_label, qtd_entry, disp_label, parent):
     # Adiciona um item à venda usando o código digitado
     global itens
@@ -345,7 +374,7 @@ def adicionarItemPorCodigo(cod_entry, nome_label, preco_label, qtd_entry, disp_l
         qtd_val = float(qtd)
         disp_val = float(disp)
     except ValueError:
-        messagebox.showerror('Erro', 'Valores inválidos pra preço ou quantidade', parent=parent)
+        messagebox.showerror('Erro', 'Valores inválidos para preço ou quantidade', parent=parent)
         return
 
     # Quantidade não pode ser zero ou negativa
@@ -355,8 +384,12 @@ def adicionarItemPorCodigo(cod_entry, nome_label, preco_label, qtd_entry, disp_l
 
     # Verifica se tem estoque suficiente
     if qtd_val > disp_val:
-        messagebox.showerror('Erro', f'Quantidade solicitada ({qtd_val}) excede o estoque disponível ({disp_val})', parent=parent)
-        return
+        confirm = messagebox.askyesnocancel('Estoque Indisponível',
+                                            f'Quantidade disponível em estoque ({disp_val}), é insuficiente.\n'
+                                            f'Deseja adicionar mesmo assim?',
+                             parent=parent)
+        if not confirm:
+            return
 
     # Não deixa adicionar o mesmo item duas vezes
     for item in itens:
@@ -428,10 +461,10 @@ def finalizarVenda(inf_vendas):
     altura_janela = 600
     largura_tela = root.winfo_screenwidth()
     altura_tela = root.winfo_screenheight()
-    
+
     pos_x = (largura_tela - largura_janela) // 2
     pos_y = (altura_tela - altura_janela) // 2
-    
+
     janela.geometry(f'{largura_janela}x{altura_janela}+{pos_x}+{pos_y}')
     janela.configure(bg='#1A3C34')
     janela.resizable(False, False)
@@ -452,8 +485,10 @@ def finalizarVenda(inf_vendas):
         # Calcula o total pago somando todas as formas
         totalPago = pagamentos['Dinheiro']
         totalPago += sum(pagamentos['Pix'])
-        totalPago += sum(p['valor'] for p in pagamentos['Credito'])
         totalPago += sum(pagamentos['Debito'])
+        for p in pagamentos['Credito']:
+            totalPago += p['valor']
+
         return totalPago
 
     def atualizarRestante(pago, rest, total):
@@ -510,11 +545,11 @@ def finalizarVenda(inf_vendas):
 
         atualizarRestante(totalPago(pagamentos), rest, total)
 
-    def pagDinheiro(entry, pag, rest, total, lista):
+    def pagDinheiro(entry, pag, rest, lista):
         # Janela pra adicionar pagamento em dinheiro
         janelapag = tk.Toplevel(janela)
         janelapag.transient(janela)
-        janelapag.geometry(f'{largura_janela-500}x{altura_janela-450}+{pos_x*2}+{pos_y*2}')
+        janelapag.geometry(f'{largura_janela - 500}x{altura_janela - 450}+{pos_x * 2}+{pos_y * 2}')
         janelapag.configure(bg='#1A3C34')
         janelapag.grab_set()
 
@@ -523,10 +558,10 @@ def finalizarVenda(inf_vendas):
         valor.insert(0, entry.get())
         valor.pack(pady=2)
 
-        def confirmar(v, pag, j, rest, total, entry, lista):
+        def confirmar(v, pag, j, rest, entry, lista):
             valor_val = float(v.get() or 0)
             pag['Dinheiro'] = valor_val
-            atualizarRestante(totalPago(pag), rest, total)
+            atualizarRestante(totalPago(pag), rest, float(valorTotal.get()))
             entry.configure(state='normal')
             entry.delete(0, tk.END)
             entry.insert(0, f'{valor_val:.2f}')
@@ -534,16 +569,18 @@ def finalizarVenda(inf_vendas):
             atualizarLista(lista, pag)
             j.destroy()
 
-        tk.Button(janelapag, text='Confirmar', command=lambda: confirmar(valor, pag, janelapag, rest, total, entry, lista), **button_style).pack(pady=10)
-        janelapag.bind('<Return>', lambda event: confirmar(valor, pag, janelapag, rest, total, entry, lista))
+        tk.Button(janelapag, text='Confirmar',
+                  command=lambda: confirmar(valor, pag, janelapag, rest, entry, lista), **button_style).pack(
+            pady=10)
+        janelapag.bind('<Return>', lambda event: confirmar(valor, pag, janelapag, rest, entry, lista))
 
-    def pagPix(entry, pag, rest, total, forma, lista):
+    def pagPix(entry, pag, rest, forma, lista):
         # Janela pra adicionar pagamento via Pix ou Débito
         janelapag = tk.Toplevel(janela)
         janelapag.transient(janela)
 
-        janelapag.geometry(f'{largura_janela-500}x{altura_janela-450}+{pos_x*2}+{pos_y*2}')
-        
+        janelapag.geometry(f'{largura_janela - 500}x{altura_janela - 450}+{pos_x * 2}+{pos_y * 2}')
+
         janelapag.configure(bg='#1A3C34')
         janelapag.grab_set()
 
@@ -552,13 +589,13 @@ def finalizarVenda(inf_vendas):
         valor.insert(0, f'{float(rest.get()):.2f}')
         valor.pack(pady=2)
 
-        def confirmar(v, pag, j, rest, total, entry, forma, lista):
+        def confirmar(v, pag, j, rest, entry, forma, lista):
             if not v.get() or float(v.get()) == 0:
                 messagebox.showerror('Erro', 'Insira um valor válido', parent=j)
                 return
             valor_val = float(v.get())
             pag[forma].append(valor_val)
-            atualizarRestante(totalPago(pag), rest, total)
+            atualizarRestante(totalPago(pag), rest, float(valorTotal.get()))
             entry.configure(state='normal')
             entry.delete(0, tk.END)
             entry.insert(0, f'{sum(pag[forma]):.2f}')
@@ -566,14 +603,16 @@ def finalizarVenda(inf_vendas):
             atualizarLista(lista, pag)
             j.destroy()
 
-        tk.Button(janelapag, text='Confirmar', command=lambda: confirmar(valor, pag, janelapag, rest, total, entry, forma, lista), **button_style).pack(pady=10)
-        janelapag.bind('<Return>', lambda event: confirmar(valor, pag, janelapag, rest, total, entry, forma, lista))
+        tk.Button(janelapag, text='Confirmar',
+                  command=lambda: confirmar(valor, pag, janelapag, rest, entry, forma, lista),
+                  **button_style).pack(pady=10)
+        janelapag.bind('<Return>', lambda event: confirmar(valor, pag, janelapag, rest, entry, forma, lista))
 
-    def pagCredito(entry, pag, rest, total, lista):
+    def pagCredito(entry, pag, rest, lista):
         # Janela pra adicionar pagamento com cartão de crédito
         janelapag = tk.Toplevel(janela)
         janelapag.transient(janela)
-        janelapag.geometry(f'{largura_janela-500}x{altura_janela-250}+{pos_x*2}+{pos_y*2}')
+        janelapag.geometry(f'{largura_janela - 500}x{altura_janela - 250}+{pos_x * 2}+{pos_y * 2}')
         janelapag.configure(bg='#1A3C34')
         janelapag.grab_set()
 
@@ -582,22 +621,23 @@ def finalizarVenda(inf_vendas):
         valor.insert(0, f'{float(rest.get()):.2f}')
         valor.pack(pady=2)
         tk.Label(janelapag, text='Qtd. Parcelas:', font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
-        parcelas = tk.Entry(janelapag, font=fonte, validate='key', validatecommand=(janelapag.register(entryNumInt), '%P'))
+        parcelas = tk.Entry(janelapag, font=fonte, validate='key',
+                            validatecommand=(janelapag.register(entryNumInt), '%P'))
         parcelas.insert(0, '1')
         parcelas.pack(pady=2)
 
-        def confirmar(v, p, pag, j, rest, total, entry, lista):
+        def confirmar(v, parc, pag, j, rest, entry, lista):
             if not v.get() or float(v.get()) == 0:
                 messagebox.showerror('Erro', 'Insira um valor válido', parent=j)
                 return
-            if not p.get() or int(p.get()) == 0:
+            if not parc.get() or int(parc.get()) == 0:
                 messagebox.showerror('Erro', 'Quantidade de parcelas inválida', parent=j)
                 return
             valor_val = float(v.get())
-            parcelas_val = int(p.get())
+            parcelas_val = int(parc.get())
             pagamento = {'valor': valor_val, 'parcelas': parcelas_val}
             pag['Credito'].append(pagamento)
-            atualizarRestante(totalPago(pag), rest, total)
+            atualizarRestante(totalPago(pag), rest, float(valorTotal.get()))
             entry.configure(state='normal')
             entry.delete(0, tk.END)
             entry.insert(0, f'{sum(p["valor"] for p in pag["Credito"]):.2f}')
@@ -605,24 +645,32 @@ def finalizarVenda(inf_vendas):
             atualizarLista(lista, pag)
             j.destroy()
 
-        tk.Button(janelapag, text='Confirmar', command=lambda: confirmar(valor, parcelas, pag, janelapag, rest, total, entry, lista), **button_style).pack(pady=10)
-        janelapag.bind('<Return>', lambda event: confirmar(valor, parcelas, pag, janelapag, rest, total, entry, lista))
+        tk.Button(janelapag, text='Confirmar',
+                  command=lambda: confirmar(valor, parcelas, pag, janelapag, rest, entry, lista),
+                  **button_style).pack(pady=10)
+        janelapag.bind('<Return>', lambda event: confirmar(valor, parcelas, pag, janelapag, rest, entry, lista))
 
     # Frame pros valores totais e desconto
     total_frame = tk.Frame(frame, bg='#1A3C34')
     total_frame.pack(pady=10, fill='x', padx=20)
-    
-    tk.Label(total_frame, text='Desconto (R$):', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=0, padx=5, pady=5, sticky='e')
+
+    tk.Label(total_frame, text='Desconto (R$):', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=0, padx=5,
+                                                                                            pady=5, sticky='e')
     desconto = tk.Entry(total_frame, font=fonte, width=15, validate='key', validatecommand=num_float)
     desconto.insert(0, '0.00')
     desconto.grid(row=0, column=1, padx=5, pady=5)
-    
-    tk.Label(total_frame, text='Total da Venda (R$):', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=2, padx=5, pady=5, sticky='e')
-    valorTotal = tk.Entry(total_frame, font=fonte, width=15, state='disabled', disabledbackground='#E5E5E5')
+
+    tk.Label(total_frame, text='Total da Venda (R$):', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=2,
+                                                                                                  padx=5, pady=5,
+                                                                                                  sticky='e')
+    valorTotal = tk.Entry(total_frame, font=fonte, width=15, disabledbackground='#E5E5E5')
     valorTotal.insert(0, f'{total:.2f}')
+    valorTotal.configure(state='disabled')
     valorTotal.grid(row=0, column=3, padx=5, pady=5)
-    
-    tk.Label(total_frame, text='Restante a Pagar (R$):', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=4, padx=5, pady=5, sticky='e')
+
+    tk.Label(total_frame, text='Restante a Pagar (R$):', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=4,
+                                                                                                    padx=5, pady=5,
+                                                                                                    sticky='e')
     valorRestante = tk.Entry(total_frame, font=fonte, width=15, state='disabled', disabledbackground='#E5E5E5')
     valorRestante.insert(0, f'{total:.2f}')
     valorRestante.grid(row=0, column=5, padx=5, pady=5)
@@ -643,11 +691,17 @@ def finalizarVenda(inf_vendas):
         entry.pack(side=tk.LEFT, padx=5)
         entries.append(entry)
         if forma == 'Credito':
-            tk.Button(subframe, text='Adicionar', command=lambda e=entry: pagCredito(e, pagamentos, valorRestante, total, pagtabela), **button_style).pack(side=tk.LEFT)
+            tk.Button(subframe, text='Adicionar',
+                      command=lambda e=entry: pagCredito(e, pagamentos, valorRestante, pagtabela),
+                      **button_style).pack(side=tk.LEFT)
         elif forma == 'Dinheiro':
-            tk.Button(subframe, text='Adicionar', command=lambda e=entry: pagDinheiro(e, pagamentos, valorRestante, total, pagtabela), **button_style).pack(side=tk.LEFT)
+            tk.Button(subframe, text='Adicionar',
+                      command=lambda e=entry: pagDinheiro(e, pagamentos, valorRestante, pagtabela),
+                      **button_style).pack(side=tk.LEFT)
         else:
-            tk.Button(subframe, text='Adicionar', command=lambda e=entry, f=forma: pagPix(e, pagamentos, valorRestante, total, f, pagtabela), **button_style).pack(side=tk.LEFT)
+            tk.Button(subframe, text='Adicionar',
+                      command=lambda e=entry, f=forma: pagPix(e, pagamentos, valorRestante, f, pagtabela),
+                      **button_style).pack(side=tk.LEFT)
 
     # Tabela pra mostrar as formas de pagamento
     colunas = ['forma', 'valor', 'obs']
@@ -677,19 +731,22 @@ def finalizarVenda(inf_vendas):
             'total': total_venda,
             'pagamento': pagamentos
         }
-        fecharVenda(venda, total_venda - total_pago, janela)
+        fecharVenda(venda, total_venda - total_pago, janela, total, float(desconto.get()))
 
     # Atualiza os totais quando o desconto muda
-    desconto.bind('<KeyRelease>', lambda event: desc(event, janela, desconto, total, totalPago(pagamentos), [valorTotal, valorRestante]))
+    desconto.bind('<KeyRelease>', lambda event: desc(event, janela, desconto, total, totalPago(pagamentos),
+                                                     valorTotal, valorRestante))
 
     # Botões pra gerenciar o pagamento
     button_frame = tk.Frame(frame, bg='#1A3C34')
     button_frame.pack(pady=20)
-    tk.Button(button_frame, text='Zerar e Recomeçar', command=lambda: zerar(pagtabela, entries, valorRestante, total), **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Confirmar Pagamento', command=confirmarPagamento, **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Zerar e Recomeçar', command=lambda: zerar(pagtabela, entries, valorRestante, total),
+              **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Confirmar Pagamento', command=confirmarPagamento, **button_style).pack(side=tk.LEFT,
+                                                                                                         padx=5)
     tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
 
-def fecharVenda(venda, restante, j):
+def fecharVenda(venda, restante, j, bruto, desconto):
     # Salva a venda e fecha a janela
     if restante > 0:
         messagebox.showerror('Pagamento inválido', 'Pagamento menor que o valor total', parent=j)
@@ -712,12 +769,12 @@ def fecharVenda(venda, restante, j):
     # Pergunta se quer gerar recibo
     recibo = messagebox.askyesno('Recibo:', 'Deseja imprimir um recibo da venda?', parent=j)
     if recibo:
-        gerarRecibo(venda, restante * (-1))
+        gerarRecibo(venda, restante * (-1), bruto, desconto)
     j.destroy()
     root.geometry('1000x500')
     frameInicial.tkraise()  # Volta pra tela inicial
 
-def gerarRecibo(venda, troco=0):
+def gerarRecibo(venda, troco=0, bruto=0, desconto=0):
     # Cria um recibo em PDF com layout bem alinhado
     arq = f'recibo_venda{venda["num_venda"]}.pdf'
     recibo = canvas.Canvas(arq, pagesize=A4)  # Página A4 (595x842 pontos)
@@ -759,19 +816,20 @@ def gerarRecibo(venda, troco=0):
 
     # Lista os itens da venda
     for item in venda['itens']:
-        nome = item['nome'][:30]  # Nome maior pra usar mais espaço
+        nome = item['nome'][:30]  # Nome maior para usar mais espaço
         valor = float(item['preco_venda'])
         qtd = float(item['qtd'])
         total = float(item['total'])
         linha(f'{nome:<30}{valor:>12.2f}{qtd:>8.1f}{total:>12.2f}')
 
     # Total geral, alinhado à direita
-    total_geral = float(venda['total'])
+    totalfinal = float(venda['total'])
     linha('-' * 80, s=18)
-    linha(f'{"TOTAL GERAL:":>50} R$ {total_geral:>10.2f}')
+    linha(f'{"TOTAL BRUTO:":>50} R$ {bruto:>10.2f}')
+    linha(f'{"DESCONTO:":>50} R$ {desconto:>10.2f}')
+    linha(f'{"VALOR FINAL:":>50} R$ {totalfinal:>10.2f}')
     linha('-' * 80, s=18)
-    
-    
+
     linha(' ' * 80, s=18)
     # Formas de pagamento em tabela clara
     linha(f'FORMAS DE PAGAMENTO', centro=True)
@@ -804,13 +862,11 @@ def gerarRecibo(venda, troco=0):
 
     # Rodapé com data e hora
     recibo.setFont('Courier', 10)
-    data = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-    recibo.drawCentredString(largura / 2, margem + 20, f'Gerado em: {data}')
 
     recibo.save()
     os.startfile(arq)  # Abre o PDF (só funciona no Windows)
 
-def desc(e, j, d, t, pago, entries):
+def desc(e, j, d, t, pago, entryTotal, restante):
     # Atualiza os totais quando o desconto é alterado
     try:
         desconto = float(d.get()) if d.get() else 0
@@ -824,17 +880,21 @@ def desc(e, j, d, t, pago, entries):
         messagebox.showerror('Erro', 'Desconto maior que o total', parent=j)
         return
 
-    for entry in entries:
-        entry.configure(state='normal')
-        entry.delete(0, tk.END)
-        entry.insert(0, f'{novoTotal if entry == entries[0] else novoRestante:.2f}')
-        entry.configure(state='disabled')
+
+    entryTotal.configure(state='normal')
+    entryTotal.delete(0, tk.END)
+    entryTotal.insert(0, f'{novoTotal:.2f}')
+    entryTotal.configure(state='disabled')
+
+    restante.configure(state='normal')
+    restante.delete(0, tk.END)
+    restante.insert(0, f'{novoRestante:.2f}')
+    restante.configure(state='disabled')
 
 def itemEstoque():
     # Janela pra adicionar item do estoque
     janela = tk.Toplevel(root)
     janela.title('MELLK - Adicionar Item do Estoque')
-    janela.geometry('400x400')
     janela.configure(bg='#1A3C34')
     janela.resizable(False, False)
     janela.grab_set()
@@ -844,7 +904,7 @@ def itemEstoque():
     altura_tela = root.winfo_screenheight()
     pos_x = (largura_tela - 400) // 2
     pos_y = (altura_tela - 400) // 2
-    janela.geometry(f'400x400+{pos_x}+{pos_y}')
+    janela.geometry(f'400x500+{pos_x}+{pos_y}')
 
     frame = tk.Frame(janela, bg='#1A3C34')
     frame.place(relx=0, rely=0, relwidth=1, relheight=1)
@@ -882,8 +942,10 @@ def itemEstoque():
 
     button_frame = tk.Frame(frame, bg='#1A3C34')
     button_frame.pack(pady=10)
-    tk.Button(button_frame, text='Procurar', command=lambda: procurarItem(dados, janela), **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Adicionar', command=lambda: addItemEstoque(dados, janela), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Procurar', command=lambda: procurarItem(dados, janela), **button_style).pack(
+        side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Adicionar', command=lambda: addItemEstoque(dados, janela), **button_style).pack(
+        side=tk.LEFT, padx=5)
     tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
 
 def addItemEstoque(dados, j):
@@ -913,7 +975,8 @@ def addItemEstoque(dados, j):
         return
 
     if qtd_val > disp_val:
-        messagebox.showerror('Erro', f'Quantidade solicitada ({qtd_val}) excede o estoque disponível ({disp_val})', parent=j)
+        messagebox.showerror('Erro', f'Quantidade solicitada ({qtd_val}) excede o estoque disponível ({disp_val})',
+                             parent=j)
         return
 
     for i in itens:
@@ -994,7 +1057,8 @@ def itemAvulso():
 
     button_frame = tk.Frame(frame, bg='#1A3C34')
     button_frame.pack(pady=10)
-    tk.Button(button_frame, text='Adicionar', command=lambda: addItemAvulso(dados, janela), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Adicionar', command=lambda: addItemAvulso(dados, janela), **button_style).pack(
+        side=tk.LEFT, padx=5)
     tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
 
 def addItemAvulso(dados, j):
@@ -1175,8 +1239,10 @@ def procurarItem(d, j):
 
     button_frame = tk.Frame(frame, bg='#1A3C34')
     button_frame.pack(pady=10)
-    tk.Button(button_frame, text='Procurar', command=lambda: procurar(tabela, pesq, estq), **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Selecionar', command=lambda: selecionar(tabela, estq, d, janela), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Procurar', command=lambda: procurar(tabela, pesq, estq), **button_style).pack(
+        side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Selecionar', command=lambda: selecionar(tabela, estq, d, janela),
+              **button_style).pack(side=tk.LEFT, padx=5)
     tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
 
 def entryNumFloat(n):

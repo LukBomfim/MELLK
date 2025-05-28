@@ -2,41 +2,121 @@
     {
         "univ_cod": 1,
         "cod": 1,
-        "nome": "NOVO ITEM NOME",
-        "preco_venda": 90000.0,
-        "preco_custo": 50000.0,
-        "lucro": 80.0,
-        "qtd": 49.0,
-        "obs": "um novo item de alto retorno"
+        "nome": "Notebook Dell Inspiron 15",
+        "preco_venda": 3500.00,
+        "preco_custo": 2500.00,
+        "lucro": 40.00,
+        "qtd": 50.0,
+        "obs": "Tela 15.6\", 8GB RAM, SSD 256GB"
     },
     {
         "univ_cod": 2,
         "cod": 2,
-        "nome": "NOME 2",
-        "preco_venda": 108.0,
-        "preco_custo": 55.0,
-        "lucro": 96.36,
-        "qtd": 3.0,
-        "obs": ""
+        "nome": "Cimento CP II 50kg",
+        "preco_venda": 35.00,
+        "preco_custo": 25.00,
+        "lucro": 40.00,
+        "qtd": 200.0,
+        "obs": "Ideal para construções gerais"
     },
     {
         "univ_cod": 3,
         "cod": 3,
-        "nome": "MATHIAS",
-        "preco_venda": 232.0,
-        "preco_custo": 22.0,
-        "lucro": 954.55,
-        "qtd": 1.0,
-        "obs": ""
+        "nome": "Parafusadeira Bosch 12V",
+        "preco_venda": 299.00,
+        "preco_custo": 180.00,
+        "lucro": 66.11,
+        "qtd": 0.0,
+        "obs": "Inclui 2 baterias"
     },
     {
         "univ_cod": 4,
-        "cod": 44,
-        "nome": "O NOME EDITED",
-        "preco_venda": 57.0,
-        "preco_custo": 55.0,
-        "lucro": 3.64,
-        "qtd": 5.0,
-        "obs": "teste de novo"
+        "cod": 4,
+        "nome": "Tinta Acrílica Coral 18L",
+        "preco_venda": 250.00,
+        "preco_custo": 200.00,
+        "lucro": 25.00,
+        "qtd": 20.0,
+        "obs": "Cor branca, acabamento fosco"
+    },
+    {
+        "univ_cod": 5,
+        "cod": 5,
+        "nome": "Smartphone Samsung A54",
+        "preco_venda": 1800.00,
+        "preco_custo": 1200.00,
+        "lucro": 50.00,
+        "qtd": 25.0,
+        "obs": "128GB, tela AMOLED"
+    },
+    {
+        "univ_cod": 6,
+        "cod": 6,
+        "nome": "Tijolo Cerâmico 8 Furos",
+        "preco_venda": 1.20,
+        "preco_custo": 0.80,
+        "lucro": 50.00,
+        "qtd": 500.0,
+        "obs": "Unidade, alta resistência"
+    },
+    {
+        "univ_cod": 7,
+        "cod": 7,
+        "nome": "Monitor LG 24\" Full HD",
+        "preco_venda": 800.00,
+        "preco_custo": 600.00,
+        "lucro": 33.33,
+        "qtd": 40.0,
+        "obs": "HDMI, 75Hz"
+    },
+    {
+        "univ_cod": 8,
+        "cod": 8,
+        "nome": "Furadeira Makita 500W",
+        "preco_venda": 220.00,
+        "preco_custo": 150.00,
+        "lucro": 46.67,
+        "qtd": 35.0,
+        "obs": "Mandril 13mm, com maleta"
+    },
+    {
+        "univ_cod": 9,
+        "cod": 9,
+        "nome": "Lâmpada LED 9W",
+        "preco_venda": 15.00,
+        "preco_custo": 10.00,
+        "lucro": 50.00,
+        "qtd": 10.0,
+        "obs": "Luz branca, 800 lumens"
+    },
+    {
+        "univ_cod": 10,
+        "cod": 10,
+        "nome": "Cabo HDMI 2m",
+        "preco_venda": 25.00,
+        "preco_custo": 15.00,
+        "lucro": 66.67,
+        "qtd": 150.0,
+        "obs": "Suporta 4K"
+    },
+    {
+        "univ_cod": 11,
+        "cod": 11,
+        "nome": "Piso Porcelanato 60x60cm",
+        "preco_venda": 50.00,
+        "preco_custo": 40.00,
+        "lucro": 25.00,
+        "qtd": 400.0,
+        "obs": "Acabamento acetinado, m²"
+    },
+    {
+        "univ_cod": 12,
+        "cod": 12,
+        "nome": "Mouse Logitech M",
+        "preco_venda": 60.00,
+        "preco_custo":35.00,
+        "lucro": 71.43,
+        "qtd": 20.0,
+        "obs": "Wireless, 1000 DPI"
     }
 ]
