@@ -48,6 +48,8 @@ def inicio():
         pady=10)  # Venda rápida, sem cliente específico
     tk.Button(button_frame, text='Novo Pedido', command=vendaPedido, **button_style).pack(
         pady=10)  # Pedido com cliente cadastrado
+    tk.Button(button_frame, text='Listar Vendas', command=orcamento, **button_style).pack(
+        pady=10)  # Novo orçamento
     tk.Button(button_frame, text='Novo Orçamento', command=orcamento, **button_style).pack(
         pady=10)  # Novo orçamento
 
@@ -1309,6 +1311,11 @@ def entryNumInt(n):
         return False
 
 
+def listar_vendas():
+    # Função placeholder pro orçamento, ainda não tá implementada
+    print('Orçamento')
+
 def orcamento():
     # Função placeholder pro orçamento, ainda não tá implementada
     print('Orçamento')
+    
