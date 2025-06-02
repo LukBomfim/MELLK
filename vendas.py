@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+from xml.etree.ElementTree import indent
+
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 import json, os
@@ -48,7 +50,7 @@ def inicio():
         pady=10)  # Venda rápida, sem cliente específico
     tk.Button(button_frame, text='Novo Pedido', command=vendaPedido, **button_style).pack(
         pady=10)  # Pedido com cliente cadastrado
-    tk.Button(button_frame, text='Listar Vendas', command=orcamento, **button_style).pack(
+    tk.Button(button_frame, text='Listar Vendas', command=listar_vendas, **button_style).pack(
         pady=10)  # Novo orçamento
     tk.Button(button_frame, text='Novo Orçamento', command=orcamento, **button_style).pack(
         pady=10)  # Novo orçamento
@@ -65,7 +67,6 @@ def receberEstoque():
     except FileNotFoundError:
         return []  # Se não achar o arquivo, retorna uma lista vazia
 
-
 def receberClientes():
     # Carrega os clientes de um arquivo JSON
     try:
@@ -74,6 +75,13 @@ def receberClientes():
     except FileNotFoundError:
         return []  # Se o arquivo não existir, retorna lista vazia
 
+def receberVendas():
+    # Carrega as vendas de um arquivo JSON
+    try:
+        with open('vendas.json', 'r', encoding='utf-8') as arq:
+            return json.load(arq)  # Devolve a lista de vendas
+    except FileNotFoundError:
+        return []  # Se o arquivo não existir, retorna lista vazia
 
 def vendaDireta():
     # Começa uma venda direta, sem precisar escolher cliente
@@ -679,9 +687,9 @@ def finalizarVenda(inf_vendas):
 
     tk.Label(total_frame, text='Desconto (R$):', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=0, padx=5,
                                                                                             pady=5, sticky='e')
-    desconto = tk.Entry(total_frame, font=fonte, width=15, validate='key', validatecommand=num_float)
-    desconto.insert(0, '0.00')
-    desconto.grid(row=0, column=1, padx=5, pady=5)
+    descontoEntry = tk.Entry(total_frame, font=fonte, width=15, validate='key', validatecommand=num_float)
+    descontoEntry.insert(0, '0.00')
+    descontoEntry.grid(row=0, column=1, padx=5, pady=5)
 
     tk.Label(total_frame, text='Total da Venda (R$):', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=2,
                                                                                                   padx=5, pady=5,
@@ -742,22 +750,27 @@ def finalizarVenda(inf_vendas):
 
     def confirmarPagamento():
         # Confirma o pagamento e finaliza a venda
+        desconto = float(descontoEntry.get())
         total_pago = totalPago(pagamentos)
         total_venda = float(valorTotal.get())
+        bruto = total_venda + desconto
         if total_pago < total_venda:
             messagebox.showerror('Erro', 'O valor pago é insuficiente', parent=janela)
             return
+
         venda = {
             'num_venda': num_venda,
             'cliente': cliente,
             'itens': itens,
+            'bruto': bruto,
+            'desconto': desconto,
             'total': total_venda,
             'pagamento': pagamentos
         }
-        fecharVenda(venda, total_venda - total_pago, janela, total, float(desconto.get()))
+        fecharVenda(venda, total_venda - total_pago, janela)
 
     # Atualiza os totais quando o desconto muda
-    desconto.bind('<KeyRelease>', lambda event: desc(event, janela, desconto, total, totalPago(pagamentos),
+    descontoEntry.bind('<KeyRelease>', lambda event: desc(event, janela, descontoEntry, total, totalPago(pagamentos),
                                                      valorTotal, valorRestante))
 
     # Botões pra gerenciar o pagamento
@@ -770,7 +783,7 @@ def finalizarVenda(inf_vendas):
     tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
 
 
-def fecharVenda(venda, restante, j, bruto, desconto):
+def fecharVenda(venda, restante, j):
     estoque = receberEstoque()
 
     # Salva a venda e fecha a janela
@@ -807,25 +820,25 @@ def fecharVenda(venda, restante, j, bruto, desconto):
     # Pergunta se quer gerar recibo
     recibo = messagebox.askyesno('Recibo:', 'Deseja imprimir um recibo da venda?', parent=j)
     if recibo:
-        gerarRecibo(venda, restante * (-1), bruto, desconto)
+        gerarRecibo(venda, restante * (-1))
     j.destroy()
     root.geometry('1000x500')
     frameInicial.tkraise()  # Volta pra tela inicial
 
 
-def gerarRecibo(venda, troco=0, bruto=0, desconto=0):
-    # ciando arquivo do recibo em Pdff
+def gerarRecibo(venda, troco=0):
+    # ciando arquivo do recibo em Pdf
     arq = f'recibo_venda{venda["num_venda"]}.pdf'
-    
+
     # Tamanho da página
     page_size = (227, 280)
     recibo = canvas.Canvas(arq, pagesize=page_size)
     largura, altura = page_size
     margem = 10  # margem
-    
+
     recibo.setFont('Courier', 6)  # fonte
     recibo.setTitle(f'Recibo de Venda N°{venda["num_venda"]}')
-    y = altura - margem - 20  # inicio 
+    y = altura - margem - 20  # inicio
 
     def linha(t, s=10, centro=False):
         # escreve uma linha no PDF
@@ -864,8 +877,8 @@ def gerarRecibo(venda, troco=0, bruto=0, desconto=0):
     # Totais
     totalfinal = float(venda['total'])
     linha('-' * 40, s=10)
-    linha(f'{"BRUTO:":>26} R${bruto:>8.2f}')
-    linha(f'{"DESCONTO:":>26} R${desconto:>8.2f}')
+    linha(f'{"BRUTO:":>26} R${venda["bruto"]:>8.2f}')
+    linha(f'{"DESCONTO:":>26} R${venda["desconto"]:>8.2f}')
     linha(f'{"FINAL:":>26} R${totalfinal:>8.2f}')
     linha('-' * 40, s=8)
 
@@ -898,6 +911,7 @@ def gerarRecibo(venda, troco=0, bruto=0, desconto=0):
 
     recibo.save()
     os.startfile(arq)  # Abre o PDF (só funciona no Windows)
+
 
 def desc(e, j, d, t, pago, entryTotal, restante):
     # Atualiza os totais quando o desconto é alterado
@@ -1312,10 +1326,114 @@ def entryNumInt(n):
 
 
 def listar_vendas():
-    # Função placeholder pro orçamento, ainda não tá implementada
-    print('Orçamento')
+
+
+    frame = tk.Frame(root)
+    frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+    colunas = ['num_venda', 'cliente_nome', 'cliente_telefone', 'total']
+    lista = ttk.Treeview(frame, columns=colunas, show='headings')
+    lista.heading('num_venda', text='N°')
+    lista.heading('cliente_nome', text='Cliente')
+    lista.heading('cliente_telefone', text='Telefone')
+    lista.heading('total', text='Valor')
+    lista.pack()
+
+    def atualizarLista():
+        vendas = receberVendas()
+
+        for v in lista.get_children():
+            lista.delete(v)
+
+        for venda in vendas:
+            lista.insert('', 'end', iid=venda["num_venda"], values=(
+                venda["num_venda"],
+                venda["cliente"]["nome"],
+                venda["cliente"]["telefone"],
+                f'R$ {venda["total"]:.2f}'
+            ))
+
+    def excluirVenda(n, j, o=False, e=None):
+        vendas = receberVendas()
+
+        try:
+            n = int(n)
+        except:
+            return
+
+        confirm = messagebox.askyesno('Excluir', f'Tem certeza que deseja excluir a venda N°{n}?', parent=j)
+        if confirm:
+            for venda in vendas:
+                if venda["num_venda"] == n:
+                    vendas.remove(venda)
+
+                    with open('vendas.json', 'w', encoding='utf-8') as arq:
+                        json.dump(vendas, arq, indent=4, ensure_ascii=False)
+                        arq.close()
+
+                    atualizarLista()
+
+                    if o:
+                        j.destroy()
+
+                    break
+
+    def abrirVenda(e=None):
+        vendas = receberVendas()
+
+        try:
+            n = int(lista.focus())
+        except:
+            return
+
+        janela = tk.Toplevel(root)
+        janela.grab_set()
+        janela.geometry('1050x500')
+
+        for venda in vendas:
+            if venda["num_venda"] == n:
+
+                tk.Label(janela, text=f'Venda N°{n} - Cliente: {venda["cliente"]["nome"]}').pack()
+                tk.Label(janela, text=f'Telefone: {venda["cliente"]["telefone"]}').pack()
+                tk.Label(janela, text=f'CPF/CNPJ: {venda["cliente"]["cpf_cnpj"]}').pack()
+                tk.Label(janela, text=f'CEP: {venda["cliente"]["cep"]}').pack()
+                tk.Label(janela, text=f'N°: {venda["cliente"]["num_casa"]}').pack()
+                tk.Label(janela, text=f'E-mail: {venda["cliente"]["email"]}').pack()
+
+                tk.Label(janela, text=f'Valor dos itens: {venda["bruto"]}').pack()
+                tk.Label(janela, text=f'Desconto: {venda["desconto"]}').pack()
+                tk.Label(janela, text=f'Total: {venda["total"]}').pack()
+
+                colunas = ['cod', 'nome', 'preco_venda', 'qtd', 'total']
+                listaItens = ttk.Treeview(janela, columns=colunas, show='headings')
+                listaItens.heading('cod', text='Cód.')
+                listaItens.heading('nome', text='Nome')
+                listaItens.heading('preco_venda', text='Valor Unit.')
+                listaItens.heading('qtd', text='Qtd.')
+                listaItens.heading('total', text='Total')
+                listaItens.pack()
+
+                for item in venda['itens']:
+                    listaItens.insert('', 'end', values=(
+                        item['cod'],
+                        item['nome'],
+                        item['preco_venda'],
+                        item['qtd'],
+                        item['total']
+                    ))
+
+                tk.Button(janela, text='Excluir', command= lambda: excluirVenda(n, janela, True)).pack()
+
+                break
+
+    atualizarLista()
+    lista.bind('<Double-1>', lambda event: abrirVenda(event))
+    lista.bind('<Delete>', lambda event: excluirVenda(lista.focus(), frame, False, event))
+
+    tk.Button(frame, text='Abrir venda', command=abrirVenda).pack()
+    tk.Button(frame, text='Excluir', command=lambda: excluirVenda(lista.focus(), frame, False)).pack()
+    tk.Button(frame, text='Voltar', command=frame.destroy).pack()
 
 def orcamento():
     # Função placeholder pro orçamento, ainda não tá implementada
-    print('Orçamento')
-    
+    return
