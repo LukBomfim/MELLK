@@ -36,7 +36,7 @@
         "preco_venda": 250.0,
         "preco_custo": 200.0,
         "lucro": 25.0,
-        "qtd": 19.0,
+        "qtd": 20.0,
         "obs": "Cor branca, acabamento fosco"
     },
     {
@@ -86,7 +86,7 @@
         "preco_venda": 15.0,
         "preco_custo": 10.0,
         "lucro": 50.0,
-        "qtd": 10.0,
+        "qtd": 9.0,
         "obs": "Luz branca, 800 lumens"
     },
     {

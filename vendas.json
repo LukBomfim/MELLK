@@ -1,1 +1,103 @@
-[]
+[
+    {
+        "num_venda": 1,
+        "cliente": {
+            "cod": 2,
+            "nome": "Mathias Borges",
+            "telefone": "(21) 98765-4321",
+            "cpf_cnpj": "123.456.789-00",
+            "cep": "55555-444",
+            "num_casa": "45",
+            "email": "mathias.borges@gmail.com"
+        },
+        "itens": [
+            {
+                "univ_cod": 6,
+                "cod": "6",
+                "nome": "Tijolo Cerâmico 8 Furos",
+                "preco_venda": 1.2,
+                "qtd": 1.0,
+                "total": 1.2
+            }
+        ],
+        "bruto": 1.2,
+        "desconto": 0.0,
+        "total": 1.2,
+        "pagamento": {
+            "Dinheiro": 1.2,
+            "Pix": [],
+            "Credito": [],
+            "Debito": []
+        },
+        "data": "01/06/2020"
+    },
+    {
+        "num_venda": 2,
+        "cliente": {
+            "cod": 7,
+            "nome": "Distribuidora Alfa S/A",
+            "telefone": "(71) 94567-8901",
+            "cpf_cnpj": "98.765.432/0001-12",
+            "cep": "40010-020",
+            "num_casa": "300",
+            "email": "vendas@distribuidoraalfa.com.br"
+        },
+        "itens": [
+            {
+                "univ_cod": 9,
+                "cod": "9",
+                "nome": "Lâmpada LED 9W",
+                "preco_venda": 15.0,
+                "qtd": 1.0,
+                "total": 15.0
+            }
+        ],
+        "bruto": 15.0,
+        "desconto": 0.0,
+        "total": 15.0,
+        "pagamento": {
+            "Dinheiro": 0.0,
+            "Pix": [15.0],
+            "Credito": [],
+            "Debito": []
+        },
+        "data": "02/06/2020"
+    },
+    {
+        "num_venda": 3,
+        "cliente": {
+            "cod": 3,
+            "nome": "Ana Silva",
+            "telefone": "(11) 91234-5678",
+            "cpf_cnpj": "987.654.321-00",
+            "cep": "12345-678",
+            "num_casa": "100",
+            "email": "ana.silva@gmail.com"
+        },
+        "itens": [
+            {
+                "univ_cod": 10,
+                "cod": "10",
+                "nome": "Cimento CP-II 50kg",
+                "preco_venda": 30.0,
+                "qtd": 2.0,
+                "total": 60.0
+            }
+        ],
+        "bruto": 60.0,
+        "desconto": 5.0,
+        "total": 55.0,
+        "pagamento": {
+            "Dinheiro": 0.0,
+            "Pix": [],
+            "Credito": [
+                {
+                    "valor": 55.0,
+                    "parcelas": 2
+                }
+            ],
+            "Debito": []
+        },
+        "data": "02/06/2025"
+    }
+]

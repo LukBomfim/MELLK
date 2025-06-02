@@ -2,7 +2,7 @@ import json
 import tkinter as tk
 from PIL import Image, ImageTk
 import os
-import clientes, estoque, vendas
+import clientes, estoque, vendas, financeiro
 
 # VERIFICAÇÃO SE OS ARQUIVOS EXISTEM
 arq = ('clientes.json', 'estoque.json', 'vendas.json')
@@ -29,7 +29,6 @@ largura_tela = menuInicial.winfo_screenwidth()
 altura_tela = menuInicial.winfo_screenheight()
 
 menuInicial.geometry(f'{largura_tela}x{altura_tela}')
-
 
 # Mudando o icon padrão do Tk
 icon_path = os.path.join(script_dir, "mellk-logo.png")
@@ -83,12 +82,13 @@ button_style = {
 tk.Button(button_frame, text='Clientes', command=clientes.inicio, **button_style).pack(pady=10)
 tk.Button(button_frame, text='Vendas', command=vendas.inicio, **button_style).pack(pady=10)
 tk.Button(button_frame, text='Estoque', command=estoque.inicio, **button_style).pack(pady=10)
-tk.Button(button_frame, text='Financeiro', **button_style).pack(pady=10)
+tk.Button(button_frame, text='Financeiro', command=financeiro.inicio,**button_style).pack(pady=10)
 tk.Button(button_frame, text='Compras', **button_style).pack(pady=10)
 
 # RODAPÉ
 footer = tk.Label(menuInicial, text="© 2025 MELLK - Todos os direitos reservados", font=('Arial', 10), fg='white',
                   bg='#1A3C34')
 footer.pack(side=tk.BOTTOM, pady=10)
+
 
 menuInicial.mainloop()

@@ -1,10 +1,9 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from xml.etree.ElementTree import indent
-
 from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
 import json, os
+
+from datetime import datetime
 
 # Estilo pros botões, pra deixar tudo com a mesma cara
 # Aqui a gente define como os botões vão ficar: fonte, cor, tamanho, tudo padronizado
@@ -765,7 +764,8 @@ def finalizarVenda(inf_vendas):
             'bruto': bruto,
             'desconto': desconto,
             'total': total_venda,
-            'pagamento': pagamentos
+            'pagamento': pagamentos,
+            'data': datetime.now().strftime("%d/%m/%Y") #Adicionando a data no ato da vendas...
         }
         fecharVenda(venda, total_venda - total_pago, janela)
 
@@ -853,10 +853,11 @@ def gerarRecibo(venda, troco=0):
             recibo.drawString(margem, y, t)
         y -= s
 
-    # Título
+    # Título + data
     recibo.setFont('Courier-Bold', 10)
     linha(f'RECIBO VENDA {venda["num_venda"]}', centro=True, s=12)
     recibo.setFont('Courier', 8)
+    linha(f'Data: {venda["data"]}', s=10) #linh da data!
     linha('-' * 40, s=10)
 
     # Dados do cliente
@@ -1326,18 +1327,24 @@ def entryNumInt(n):
 
 
 def listar_vendas():
-
-
     frame = tk.Frame(root)
     frame.place(relx=0, rely=0, relwidth=1, relheight=1)
 
-    colunas = ['num_venda', 'cliente_nome', 'cliente_telefone', 'total']
+    colunas = ['num_venda', 'cliente_nome', 'cliente_telefone', 'data', 'total']  # Adiciona 'data'
     lista = ttk.Treeview(frame, columns=colunas, show='headings')
+    
     lista.heading('num_venda', text='N°')
     lista.heading('cliente_nome', text='Cliente')
     lista.heading('cliente_telefone', text='Telefone')
+    lista.heading('data', text='Data')  
     lista.heading('total', text='Valor')
-    lista.pack()
+    
+    lista.column('num_venda', width=50)
+    lista.column('cliente_nome', width=200)
+    lista.column('cliente_telefone', width=100)
+    lista.column('data', width=100)
+    lista.column('total', width=100)
+    lista.pack(fill='both', expand=True, padx=10, pady=10)
 
     def atualizarLista():
         vendas = receberVendas()
@@ -1350,6 +1357,7 @@ def listar_vendas():
                 venda["num_venda"],
                 venda["cliente"]["nome"],
                 venda["cliente"]["telefone"],
+                venda.get("data", "N/A"),  # Usa a data ou "-" se não existir
                 f'R$ {venda["total"]:.2f}'
             ))
 
@@ -1369,7 +1377,6 @@ def listar_vendas():
 
                     with open('vendas.json', 'w', encoding='utf-8') as arq:
                         json.dump(vendas, arq, indent=4, ensure_ascii=False)
-                        arq.close()
 
                     atualizarLista()
 
@@ -1388,21 +1395,21 @@ def listar_vendas():
 
         janela = tk.Toplevel(root)
         janela.grab_set()
-        janela.geometry('1050x500')
+        janela.geometry('1050x600')
 
         for venda in vendas:
             if venda["num_venda"] == n:
+                tk.Label(janela, text=f'Venda N°{n} - Cliente: {venda["cliente"]["nome"]}').pack(pady=5)
+                tk.Label(janela, text=f'Data: {venda.get("data", "-")}').pack(pady=5)  # Mostra a data
+                tk.Label(janela, text=f'Telefone: {venda["cliente"]["telefone"]}').pack(pady=5)
+                tk.Label(janela, text=f'CPF/CNPJ: {venda["cliente"]["cpf_cnpj"]}').pack(pady=5)
+                tk.Label(janela, text=f'CEP: {venda["cliente"]["cep"]}').pack(pady=5)
+                tk.Label(janela, text=f'N°: {venda["cliente"]["num_casa"]}').pack(pady=5)
+                tk.Label(janela, text=f'E-mail: {venda["cliente"]["email"]}').pack(pady=5)
 
-                tk.Label(janela, text=f'Venda N°{n} - Cliente: {venda["cliente"]["nome"]}').pack()
-                tk.Label(janela, text=f'Telefone: {venda["cliente"]["telefone"]}').pack()
-                tk.Label(janela, text=f'CPF/CNPJ: {venda["cliente"]["cpf_cnpj"]}').pack()
-                tk.Label(janela, text=f'CEP: {venda["cliente"]["cep"]}').pack()
-                tk.Label(janela, text=f'N°: {venda["cliente"]["num_casa"]}').pack()
-                tk.Label(janela, text=f'E-mail: {venda["cliente"]["email"]}').pack()
-
-                tk.Label(janela, text=f'Valor dos itens: {venda["bruto"]}').pack()
-                tk.Label(janela, text=f'Desconto: {venda["desconto"]}').pack()
-                tk.Label(janela, text=f'Total: {venda["total"]}').pack()
+                tk.Label(janela, text=f'Valor dos itens: R$ {venda["bruto"]:.2f}').pack(pady=5)
+                tk.Label(janela, text=f'Desconto: R$ {venda["desconto"]:.2f}').pack(pady=5)
+                tk.Label(janela, text=f'Total: R$ {venda["total"]:.2f}').pack(pady=5)
 
                 colunas = ['cod', 'nome', 'preco_venda', 'qtd', 'total']
                 listaItens = ttk.Treeview(janela, columns=colunas, show='headings')
@@ -1411,18 +1418,23 @@ def listar_vendas():
                 listaItens.heading('preco_venda', text='Valor Unit.')
                 listaItens.heading('qtd', text='Qtd.')
                 listaItens.heading('total', text='Total')
-                listaItens.pack()
+                listaItens.column('cod', width=100)
+                listaItens.column('nome', width=300)
+                listaItens.column('preco_venda', width=100)
+                listaItens.column('qtd', width=100)
+                listaItens.column('total', width=100)
+                listaItens.pack(fill='both', expand=True, padx=10, pady=10)
 
                 for item in venda['itens']:
                     listaItens.insert('', 'end', values=(
                         item['cod'],
                         item['nome'],
-                        item['preco_venda'],
-                        item['qtd'],
-                        item['total']
+                        f'R$ {item["preco_venda"]:.2f}',
+                        f'{item["qtd"]:.2f}',
+                        f'R$ {item["total"]:.2f}'
                     ))
 
-                tk.Button(janela, text='Excluir', command= lambda: excluirVenda(n, janela, True)).pack()
+                tk.Button(janela, text='Excluir', command=lambda: excluirVenda(n, janela, True), **button_style).pack(pady=10)
 
                 break
 
@@ -1430,10 +1442,11 @@ def listar_vendas():
     lista.bind('<Double-1>', lambda event: abrirVenda(event))
     lista.bind('<Delete>', lambda event: excluirVenda(lista.focus(), frame, False, event))
 
-    tk.Button(frame, text='Abrir venda', command=abrirVenda).pack()
-    tk.Button(frame, text='Excluir', command=lambda: excluirVenda(lista.focus(), frame, False)).pack()
-    tk.Button(frame, text='Voltar', command=frame.destroy).pack()
-
+    button_frame = tk.Frame(frame, bg='#1A3C34')
+    button_frame.pack(pady=10)
+    tk.Button(button_frame, text='Abrir venda', command=abrirVenda, **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Excluir', command=lambda: excluirVenda(lista.focus(), frame, False), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Voltar', command=frame.destroy, **button_style).pack(side=tk.LEFT, padx=5)
 def orcamento():
     # Função placeholder pro orçamento, ainda não tá implementada
     return
