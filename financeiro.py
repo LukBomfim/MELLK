@@ -314,4 +314,4 @@ def gerarRelatorio(data_inicio, data_fim):
     linha('-' * 40, s=8)
 
     pdf.save()
-    os.startfile(pdf)
+    os.startfile(arq)
