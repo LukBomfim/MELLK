@@ -5,12 +5,12 @@ import datetime
 
 # Estilo global para botões
 button_style = {
-    'font': ('Arial', 11),
+    'font': ('Arial', 10),
     'bg': '#FFFFFF',
     'fg': '#000000',
     'activebackground': '#E5E5E5',
     'activeforeground': '#000000',
-    'width': 15,
+    'width': 20,
     'height': 2,
     'borderwidth': 1,
     'cursor': 'hand2',
