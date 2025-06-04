@@ -359,7 +359,7 @@ def novaCompra(listaCompras):
         entries = [nomeEntry, valorEntry, qtdEntry, totalEntry, codEntry]
 
         button_frame = tk.Frame(frame_item, bg='#1A3C34')
-        button_frame.pack(pady=10)
+        button_frame.pack(pady=5)
         tk.Button(button_frame, text='Confirmar', command=lambda: confirmarItem(entries, janelaItem, False, lista, total, itens), **button_style).pack(side=tk.LEFT, padx=5)
         tk.Button(button_frame, text='Cancelar', command=janelaItem.destroy, **button_style).pack(side=tk.LEFT, padx=5)
 
@@ -479,7 +479,7 @@ def novaCompra(listaCompras):
 
             pos_x = (largura_tela - 400) // 2
             pos_y = (altura_tela - 300) // 2
-            janelapag.geometry(f'400x300+{pos_x}+{pos_y}')
+            janelapag.geometry(f'700x600+{pos_x}+{pos_y}')
 
             frame_pag = tk.Frame(janelapag, bg='#1A3C34')
             frame_pag.place(relx=0, rely=0, relwidth=1, relheight=1)
@@ -492,7 +492,7 @@ def novaCompra(listaCompras):
             tk.Radiobutton(frame_pag, text="Parcelado", variable=forma_pagamento, value="3", font=fonte, fg='white', bg='#1A3C34', selectcolor='#3b3b3b').pack(anchor='w', padx=20, pady=5)
 
             button_frame = tk.Frame(frame_pag, bg='#1A3C34')
-            button_frame.pack(pady=20)
+            button_frame.pack(pady=10)
             tk.Button(button_frame, text="Confirmar", command=lambda: confirmar_pagamento(forma_pagamento.get(), lista, total, fornecedor, itens, num_compra, listaCompras, janelapag), **button_style).pack()
 
     def confirmar_pagamento(forma_pagamento, lista, total, fornecedor, itens, num_compra, listaCompras, janelapag):
