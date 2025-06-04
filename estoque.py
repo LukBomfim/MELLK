@@ -2,10 +2,6 @@ import json
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-# Índice global para navegação. Inicializei como 0, mas não está sendo usado diretamente aqui,
-# mantive para compatibilidade com possíveis expansões ou navegação sequencial.
-i = 0
-
 def inicio():
     # Declaro variáveis globais para acessar a tabela, janela principal e código universal
     # em outras funções. Isso centraliza o controle desses elementos.
@@ -73,10 +69,11 @@ def inicio():
     # Frame para os botões de ação. Organizei com pack e side=LEFT para alinhá-los horizontalmente.
     action_frame = tk.Frame(frame_estoque, bg='#1A3C34')
     action_frame.pack(pady=10)
-    tk.Button(action_frame, text='Procurar', command=lambda: botaoProcurar(pesq), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(action_frame, text='Procurar', command=lambda: botaoProcurar(pesq), **button_style).pack(side=tk.LEFT,
+                                                                                                       padx=5)
     tk.Button(action_frame, text='Limpar', command=lambda: limpar(pesq), **button_style).pack(side=tk.LEFT, padx=5)
     tk.Button(action_frame, text='Novo Item', command=novoItem, **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(action_frame, text='Excluir', command=botaoExcluir, **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(action_frame, text='Excluir', command=excluir, **button_style).pack(side=tk.LEFT, padx=5)
     tk.Button(action_frame, text='Editar', command=editar, **button_style).pack(side=tk.LEFT, padx=5)
 
     # Vinculo a tecla Enter à função de busca para agilizar a pesquisa sem clicar no botão.
@@ -101,10 +98,10 @@ def inicio():
     tabela.column('qtd', width=100)
     tabela.column('obs', width=300)
 
-    #config, quando o estoque é baixo
+    # config, quando o estoque é baixo
     tabela.tag_configure('estoque_baixo', background="#FFF799")
     tabela.tag_configure('estoque_zerado', background='#FF9999')
-    
+
     # Add uma scrollbar vertical para a tabela, essencial para grandes quantidades de itens.
     scrollbar = ttk.Scrollbar(frame_estoque, orient='vertical', command=tabela.yview)
     tabela.configure(yscrollcommand=scrollbar.set)
@@ -114,9 +111,13 @@ def inicio():
     # Vinculo o evento de duplo clique na tabela à função de edição, permitindo editar itens rapidamente.
     tabela.bind('<Double-1>', editar)
 
+    # Usar o botão 'Delete' para excluir um item do estoque
+    tabela.bind('<Delete>', excluir)
+
     # Carrego os dados iniciais do estoque na tabela ao abrir a janela.
     atualizarTabela()
     frame_estoque.tkraise()  # Garanto que o frame principal esteja visível.
+
 
 def botaoProcurar(pesq, event=None):
     # Função para filtrar itens do estoque com base nos campos de pesquisa.
@@ -147,7 +148,7 @@ def botaoProcurar(pesq, event=None):
 
         if qtd < 1:
             tags_estoque = ('estoque_zerado',)
-        elif qtd < 25:
+        elif qtd < 5:
             tags_estoque = ('estoque_baixo',)
         else:
             tags_estoque = ()
@@ -160,7 +161,8 @@ def botaoProcurar(pesq, event=None):
             f"{item['lucro']:.2f}",
             f"{item['qtd']:.2f}",
             item['obs']
-        ),tags=tags_estoque)
+        ), tags=tags_estoque)
+
 
 def limpar(pesq):
     # Limpa todos os campos de pesquisa e atualiza a tabela para mostrar todos os itens
@@ -168,12 +170,12 @@ def limpar(pesq):
         p.delete(0, tk.END)
     botaoProcurar(pesq)
 
+
 def editar(event=None):
     # Função para editar um item selecionado na tabela
     # Verifico se um item está selecionado
     ind = tabela.focus()
     if not ind:
-        messagebox.showinfo('Aviso', 'Selecione um item para editar.',parent=root)
         return
 
     # Carrego o estoque e tento acessar o item pelo índice selecionado.
@@ -181,7 +183,6 @@ def editar(event=None):
     try:
         item = estoque[int(ind)]
     except (ValueError, IndexError):
-        messagebox.showerror('Erro', 'Item inválido selecionado.',parent=root)
         return
 
     # Crio uma janela modal para edição, com tamanho fixo e tema consistente.
@@ -200,18 +201,23 @@ def editar(event=None):
     # Lista de campos para a janela de edição. Cada tupla contém o rótulo, função para criar o campo,
     # valor inicial e função de validação (se aplicável).
     fields = [
-        ('*Cód.:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_int), item['cod'], None),
+        ('*Cód.:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_int), item['cod'],
+         None),
         ('*Nome:', lambda: tk.Entry(janela, font=fonte, width=30), item['nome'], lambda e, entry: formNome(e, entry)),
-        ('*Custo:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float), item['preco_custo'], lambda e, entry: [formFloat(e, entry), formCustoCor(e, entry)]),
-        ('*Venda:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float), item['preco_venda'], lambda e, entry: formFloat(e, entry)),
-        ('*Lucro (%):', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float), item['lucro'], lambda e, entry: formFloat(e, entry)),
-        ('*Disponível:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float), item['qtd'], lambda e, entry: formFloat(e, entry)),
+        ('*Custo:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float),
+         item['preco_custo'], lambda e, entry: [formFloat(e, entry), formCustoCor(e, entry)]),
+        ('*Venda:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float),
+         item['preco_venda'], lambda e, entry: formFloat(e, entry)),
+        ('*Lucro (%):', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float),
+         item['lucro'], lambda e, entry: formFloat(e, entry)),
+        ('*Disponível:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float),
+         item['qtd'], lambda e, entry: formFloat(e, entry)),
         ('Observações:', lambda: tk.Text(janela, font=fonte, height=5, width=30), item['obs'], None)
     ]
 
     # Crio os campos dinamicamente e armazeno em um dicionário para fácil acesso.
     entries = {}
-    for label_text, entry_func, value, bind_func_current in fields: # Renomeei para bind_func_current
+    for label_text, entry_func, value, bind_func_current in fields:  # Renomeei para bind_func_current
         tk.Label(janela, text=label_text, font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
         entry = entry_func()
         if isinstance(entry, tk.Text):
@@ -230,7 +236,7 @@ def editar(event=None):
             # Vincule as funções diretamente aqui para o campo de Custo
             entry.bind('<FocusOut>', lambda e, ent=entry: formFloat(e, ent))
             entry.bind('<KeyRelease>', lambda e, ent=entry: formCustoCor(e, ent))
-        elif bind_func_current and callable(bind_func_current): # Para Venda, Lucro, Disponível
+        elif bind_func_current and callable(bind_func_current):  # Para Venda, Lucro, Disponível
             # Passa bind_func_current como argumento padrão 'func' na lambda
             entry.bind('<FocusOut>', lambda e, ent=entry, func=bind_func_current: func(e, ent))
 
@@ -238,9 +244,12 @@ def editar(event=None):
         entries[key] = entry
 
     # Vinculo eventos para atualizar os campos de venda e lucro automaticamente.
-    entries['Custo'].bind('<FocusOut>', lambda e: vendaAlt(e, entries['Custo'], entries['Venda'], entries['Lucro']), add='+')
-    entries['Venda'].bind('<FocusOut>', lambda e: vendaAlt(e, entries['Custo'], entries['Venda'], entries['Lucro']), add='+')
-    entries['Lucro'].bind('<FocusOut>', lambda e: lucroAlt(e, entries['Custo'], entries['Venda'], entries['Lucro']), add='+')
+    entries['Custo'].bind('<FocusOut>', lambda e: vendaAlt(e, entries['Custo'], entries['Venda'], entries['Lucro']),
+                          add='+')
+    entries['Venda'].bind('<FocusOut>', lambda e: vendaAlt(e, entries['Custo'], entries['Venda'], entries['Lucro']),
+                          add='+')
+    entries['Lucro'].bind('<FocusOut>', lambda e: lucroAlt(e, entries['Custo'], entries['Venda'], entries['Lucro']),
+                          add='+')
 
     # Crio um dicionário com os campos para passar para a função de salvamento.
     item_edt = {
@@ -258,45 +267,31 @@ def editar(event=None):
     tk.Button(janela, text='Salvar', command=lambda: salvar(janela, item_edt, False), **button_style).pack(pady=10)
     tk.Button(janela, text='Cancelar', command=janela.destroy, **button_style).pack(pady=5)
 
-def botaoExcluir():
+
+def excluir(e=None):
     # Função para excluir um item selecionado na tabela.
-    ind = tabela.focus()
-    if not ind:
-        messagebox.showinfo('Aviso', 'Selecione um item para excluir.',parent=root)
-        return
-
     estoque = receberEstoque()
     try:
-        item = estoque[int(ind)]
-    except (ValueError, IndexError):
-        messagebox.showerror('Erro', 'Item inválido selecionado.')
+        ind = int(tabela.focus())
+    except:
         return
 
-    # Crio uma janela de confirmação para evitar exclusões acidentais.
-    janela = tk.Toplevel(root)
-    janela.geometry('400x150')
-    janela.title('Excluir Item')
-    janela.configure(bg='#1A3C34')
-    janela.grab_set()
-    janela.resizable(False, False)
+    item = estoque[ind]
+    confirm = messagebox.askyesnocancel('Excluir Item',
+                                        f'Tem certeza que deseja excluir o produto {item["nome"]} do estoque?',
+                                        parent=root)
+    if confirm:
+        try:
+            nome = estoque[ind]['nome']
+            estoque.pop(ind)
+            with open('estoque.json', 'w', encoding='utf-8') as arq:
+                json.dump(estoque, arq, indent=4, ensure_ascii=False)
+            messagebox.showinfo('Item excluido', f'Item "{nome}" excluído com sucesso!', parent=root)
+            atualizarTabela()
+        except Exception as e:
+            messagebox.showerror('Erro', f'Erro ao excluir o item: {str(e)}', parent=root)
 
-    tk.Label(janela, text=f'Tem certeza que deseja excluir o item "{item["nome"]}"?', font=('Arial', 12), fg='white', bg='#1A3C34').pack(pady=20)
-    tk.Button(janela, text='Excluir', command=lambda: excluir(janela, int(ind)), **button_style).pack(pady=5)
-    tk.Button(janela, text='Cancelar', command=janela.destroy, **button_style).pack(pady=5)
 
-def excluir(janela, ind):
-    # Remove o item do estoque e atualiza o arquivo JSON.
-    estoque = receberEstoque()
-    try:
-        nome = estoque[ind]['nome']
-        estoque.pop(ind)
-        with open('estoque.json', 'w', encoding='utf-8') as arq:
-            json.dump(estoque, arq, indent=4, ensure_ascii=False)
-        messagebox.showinfo('Sucesso', f'Item "{nome}" excluído com sucesso!',parent=janela)
-        atualizarTabela()
-    except Exception as e:
-        messagebox.showerror('Erro', f'Erro ao excluir o item: {str(e)}',parent=janela)
-    janela.destroy()
 
 def novoItem():
     # Função para adicionar um novo item ao estoque.
@@ -321,18 +316,23 @@ def novoItem():
 
     # Lista de campos para o cadastro, com valores iniciais padrão.
     fields = [
-        ('*Cód.:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_int), str(univ_cod), None),
+        ('*Cód.:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_int),
+         str(univ_cod), None),
         ('*Nome:', lambda: tk.Entry(janela, font=fonte, width=30), '', lambda e, entry: formNome(e, entry)),
-        ('*Custo:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float), '0.00', lambda e, entry: [formFloat(e, entry), formCustoCor(e, entry)]),
-        ('*Venda:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float), '0.00', lambda e, entry: formFloat(e, entry)),
-        ('*Lucro (%):', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float), '0.00', lambda e, entry: formFloat(e, entry)),
-        ('*Disponível:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float), '0.00', lambda e, entry: formFloat(e, entry)),
+        ('*Custo:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float), '0.00',
+         lambda e, entry: [formFloat(e, entry), formCustoCor(e, entry)]),
+        ('*Venda:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float), '0.00',
+         lambda e, entry: formFloat(e, entry)),
+        ('*Lucro (%):', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float),
+         '0.00', lambda e, entry: formFloat(e, entry)),
+        ('*Disponível:', lambda: tk.Entry(janela, font=fonte, width=30, validate='key', validatecommand=num_float),
+         '0.00', lambda e, entry: formFloat(e, entry)),
         ('Observações:', lambda: tk.Text(janela, font=fonte, height=5, width=30), '', None)
     ]
 
     # Configuro os campos dinamicamente, com validações específicas.
     entries = {}
-    for label_text, entry_func, value, bind_func_current in fields: # Renomeei para bind_func_current
+    for label_text, entry_func, value, bind_func_current in fields:  # Renomeei para bind_func_current
         tk.Label(janela, text=label_text, font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
         entry = entry_func()
         if isinstance(entry, tk.Text):
@@ -351,7 +351,7 @@ def novoItem():
             # Vincule as funções diretamente aqui para o campo de Custo
             entry.bind('<FocusOut>', lambda e, ent=entry: formFloat(e, ent))
             entry.bind('<KeyRelease>', lambda e, ent=entry: formCustoCor(e, ent))
-        elif bind_func_current and callable(bind_func_current): # Para Venda, Lucro, Disponível
+        elif bind_func_current and callable(bind_func_current):  # Para Venda, Lucro, Disponível
             # Passa bind_func_current como argumento padrão 'func' na lambda
             entry.bind('<FocusOut>', lambda e, ent=entry, func=bind_func_current: func(e, ent))
 
@@ -359,9 +359,12 @@ def novoItem():
         entries[key] = entry
 
     # Vinculo os cálculos automáticos de lucro e venda.
-    entries['Custo'].bind('<FocusOut>', lambda e: vendaAlt(e, entries['Custo'], entries['Venda'], entries['Lucro']), add='+')
-    entries['Venda'].bind('<FocusOut>', lambda e: vendaAlt(e, entries['Custo'], entries['Venda'], entries['Lucro']), add='+')
-    entries['Lucro'].bind('<FocusOut>', lambda e: lucroAlt(e, entries['Custo'], entries['Venda'], entries['Lucro']), add='+')
+    entries['Custo'].bind('<FocusOut>', lambda e: vendaAlt(e, entries['Custo'], entries['Venda'], entries['Lucro']),
+                          add='+')
+    entries['Venda'].bind('<FocusOut>', lambda e: vendaAlt(e, entries['Custo'], entries['Venda'], entries['Lucro']),
+                          add='+')
+    entries['Lucro'].bind('<FocusOut>', lambda e: lucroAlt(e, entries['Custo'], entries['Venda'], entries['Lucro']),
+                          add='+')
 
     # Dicionário com os campos para salvamento.
     item_entry = {
@@ -378,6 +381,7 @@ def novoItem():
     tk.Button(janela, text='Salvar', command=lambda: salvar(janela, item_entry, True), **button_style).pack(pady=10)
     tk.Button(janela, text='Cancelar', command=janela.destroy, **button_style).pack(pady=5)
 
+
 def entryNumInt(n):
     # Valida se a entrada é um número inteiro ou vazia. Usado no campo de código.
     if n == '':
@@ -387,6 +391,7 @@ def entryNumInt(n):
         return True
     except:
         return False
+
 
 def entryNumFloat(n):
     # Valida se a entrada é um número flutuante ou vazia. Usado para preços, lucro e quantidade.
@@ -398,11 +403,13 @@ def entryNumFloat(n):
     except:
         return False
 
+
 def formNome(e, entry):
     # Converte o nome para maiúsculas ao sair do campo, para padronização.
     nome = entry.get().upper()
     entry.delete(0, tk.END)
     entry.insert(0, nome)
+
 
 def formFloat(e, entry):
     # Formata números flutuantes com 2 casas decimais. Insere 0.00 se o campo for inválido.
@@ -416,10 +423,12 @@ def formFloat(e, entry):
         except ValueError:
             entry.insert(0, '0.00')
 
+
 def formCustoCor(e, entry):
     # Destaca o campo de custo em rosa se estiver vazio ou zerado, para indicar erro visualmente.
     value = entry.get()
     entry.configure(bg='pink' if value == '' or value == '0.00' else 'white')
+
 
 def lucroAlt(e, custo_entry, venda_entry, lucro_entry):
     # Calcula o preço de venda com base no custo e percentual de lucro.
@@ -428,6 +437,7 @@ def lucroAlt(e, custo_entry, venda_entry, lucro_entry):
     venda = custo + (custo * lucro / 100)
     venda_entry.delete(0, tk.END)
     venda_entry.insert(0, f'{venda:.2f}')
+
 
 def vendaAlt(e, custo_entry, venda_entry, lucro_entry):
     # Calcula o percentual de lucro com base no custo e preço de venda.
@@ -440,6 +450,7 @@ def vendaAlt(e, custo_entry, venda_entry, lucro_entry):
         lucro = ((venda - custo) / custo) * 100 if custo != 0 else 0
         lucro_entry.insert(0, f'{lucro:.2f}')
 
+
 def receberEstoque():
     # Carrega o estoque do arquivo JSON. Retorna lista vazia se o arquivo não existir.
     try:
@@ -447,6 +458,7 @@ def receberEstoque():
             return json.load(arq)
     except FileNotFoundError:
         return []
+
 
 def atualizarTabela():
     # Atualiza a tabela com todos os itens do estoque, formatando valores numéricos.
@@ -458,7 +470,7 @@ def atualizarTabela():
 
         if qtd < 1:
             tags_estoque = ('estoque_zerado',)
-        elif qtd < 25:
+        elif qtd < 5:
             tags_estoque = ('estoque_baixo',)
         else:
             tags_estoque = ()
@@ -471,7 +483,8 @@ def atualizarTabela():
             f"{item['lucro']:.2f}",
             f"{item['qtd']:.2f}",
             item['obs']
-        ),tags=tags_estoque)
+        ), tags=tags_estoque)
+
 
 def salvar(janela, entry, novo=True):
     # Salva um item novo ou editado no arquivo JSON.
@@ -496,9 +509,9 @@ def salvar(janela, entry, novo=True):
     flagNull = any(not item[o] for o in obrig)
 
     if flagCod:
-        messagebox.showerror('Erro', 'Código já cadastrado!')
+        messagebox.showerror('Erro', 'Código já cadastrado!', parent=janela)
     elif flagNull:
-        messagebox.showerror('Erro', 'Preencha todos os campos obrigatórios (*)!',parent=janela)
+        messagebox.showerror('Erro', 'Preencha todos os campos obrigatórios (*)!', parent=janela)
     else:
         try:
             with open('estoque.json', 'r+', encoding='utf-8') as arq:
@@ -510,8 +523,7 @@ def salvar(janela, entry, novo=True):
                 arq.seek(0)
                 json.dump(estoque, arq, indent=4, ensure_ascii=False)
                 arq.truncate()
-            messagebox.showinfo('Sucesso', f'Item "{item["nome"]}" {"cadastrado" if novo else "alterado"} com sucesso!',)
             atualizarTabela()
             janela.destroy()
         except Exception as e:
-            messagebox.showerror('Erro', f'Erro ao salvar o item: {str(e)}',parent=janela)
+            messagebox.showerror('Erro', f'Erro ao salvar o item: {str(e)}', parent=janela)
