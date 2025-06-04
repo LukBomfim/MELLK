@@ -588,7 +588,7 @@ def finalizarVenda(inf_vendas):
 
         tk.Label(janelapag, text='Valor Pago (R$):', font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
         valor = tk.Entry(janelapag, font=fonte, validate='key', validatecommand=num_float)
-        valor.insert(0, entry.get())
+        valor.insert(0, f'{float(rest.get()):.2f}')
         valor.pack(pady=2)
 
         def confirmar(v, pag, j, rest, entry, lista):
@@ -1040,8 +1040,17 @@ def addItemEstoque(dados, j):
             messagebox.showerror('Erro', 'Item já adicionado ao pedido', parent=j)
             return
 
+    estq = receberEstoque()
+    for p in estq:
+        if int(cod) == p['cod']:
+            univ_cod = p['univ_cod']
+            break
+    else:
+        return
+
     total = venda_val * qtd_val
     item = {
+        'univ_cod': univ_cod,
         'cod': cod,
         'nome': nome,
         'preco_venda': venda_val,
