@@ -57,7 +57,9 @@
         "total": 15.0,
         "pagamento": {
             "Dinheiro": 0.0,
-            "Pix": [15.0],
+            "Pix": [
+                15.0
+            ],
             "Credito": [],
             "Debito": []
         },
@@ -99,5 +101,211 @@
             "Debito": []
         },
         "data": "02/06/2025"
+    },
+    {
+        "num_venda": 4,
+        "cliente": {
+            "cod": 2,
+            "nome": "Mathias Borges",
+            "telefone": "(21) 98765-4321",
+            "cpf_cnpj": "123.456.789-00",
+            "cep": "55555-444",
+            "num_casa": "45",
+            "email": "mathias.borges@gmail.com"
+        },
+        "itens": [
+            {
+                "univ_cod": 10,
+                "cod": "10",
+                "nome": "Cabo HDMI 2m",
+                "preco_venda": 25.0,
+                "qtd": 1.0,
+                "total": 25.0
+            }
+        ],
+        "bruto": 25.0,
+        "desconto": 0.0,
+        "total": 25.0,
+        "pagamento": {
+            "Dinheiro": 0.0,
+            "Pix": [],
+            "Credito": [
+                {
+                    "valor": 25.0,
+                    "parcelas": 4
+                }
+            ],
+            "Debito": []
+        },
+        "data": "04/06/2025"
+    },
+    {
+        "num_venda": 5,
+        "cliente": {
+            "cod": 1,
+            "nome": "Mathias Silva",
+            "telefone": "(11) 5545-5455",
+            "cpf_cnpj": "551.515.151-51",
+            "cep": "21515-111",
+            "num_casa": "5501",
+            "email": "mathias.silva@gmail.com"
+        },
+        "itens": [
+            {
+                "univ_cod": 12,
+                "cod": "12",
+                "nome": "Mouse Logitech M",
+                "preco_venda": 60.0,
+                "qtd": 1.0,
+                "total": 60.0
+            }
+        ],
+        "bruto": 60.0,
+        "desconto": 0.0,
+        "total": 60.0,
+        "pagamento": {
+            "Dinheiro": 0.0,
+            "Pix": [],
+            "Credito": [
+                {
+                    "valor": 60.0,
+                    "parcelas": 2
+                }
+            ],
+            "Debito": []
+        },
+        "data": "04/06/2025"
+    },
+    {
+        "num_venda": 6,
+        "cliente": {
+            "cod": 4,
+            "nome": "Comercial Lima Ltda",
+            "telefone": "(41) 99876-5432",
+            "cpf_cnpj": "12.345.678/0001-90",
+            "cep": "80050-200",
+            "num_casa": "789",
+            "email": "contato@comerciallima.com.br"
+        },
+        "itens": [
+            {
+                "univ_cod": 9,
+                "cod": "9",
+                "nome": "Lâmpada LED 9W",
+                "preco_venda": 15.0,
+                "qtd": 1.0,
+                "total": 15.0
+            }
+        ],
+        "bruto": 15.0,
+        "desconto": 0.0,
+        "total": 15.0,
+        "pagamento": {
+            "Dinheiro": 15.0,
+            "Pix": [],
+            "Credito": [],
+            "Debito": []
+        },
+        "data": "04/06/2025"
+    },
+    {
+        "num_venda": 7,
+        "cliente": {
+            "cod": 8,
+            "nome": "Lucas Almeida",
+            "telefone": "(81) 95678-9012",
+            "cpf_cnpj": "321.654.987-11",
+            "cep": "50030-230",
+            "num_casa": "25",
+            "email": "lucas.almeida@outlook.com"
+        },
+        "itens": [
+            {
+                "univ_cod": 7,
+                "cod": "7",
+                "nome": "Monitor LG 24\" Full HD",
+                "preco_venda": 800.0,
+                "qtd": 1.0,
+                "total": 800.0
+            }
+        ],
+        "bruto": 800.0,
+        "desconto": 0.0,
+        "total": 800.0,
+        "pagamento": {
+            "Dinheiro": 800.0,
+            "Pix": [],
+            "Credito": [],
+            "Debito": []
+        },
+        "data": "04/06/2025"
+    },
+    {
+        "num_venda": 8,
+        "cliente": {
+            "cod": 5,
+            "nome": "Pedro Henrique Costa",
+            "telefone": "(51) 92345-6789",
+            "cpf_cnpj": "456.789.123-45",
+            "cep": "90010-150",
+            "num_casa": "101",
+            "email": "pedro.costa@yahoo.com"
+        },
+        "itens": [
+            {
+                "univ_cod": 8,
+                "cod": "8",
+                "nome": "Furadeira Makita 500W",
+                "preco_venda": 220.0,
+                "qtd": 1.0,
+                "total": 220.0
+            }
+        ],
+        "bruto": 220.0,
+        "desconto": 0.0,
+        "total": 220.0,
+        "pagamento": {
+            "Dinheiro": 0.0,
+            "Pix": [],
+            "Credito": [],
+            "Debito": [
+                220.0
+            ]
+        },
+        "data": "04/06/2025"
+    },
+    {
+        "num_venda": 9,
+        "cliente": {
+            "cod": 6,
+            "nome": "Mariana Oliveira",
+            "telefone": "(61) 93456-7890",
+            "cpf_cnpj": "789.123.456-78",
+            "cep": "70070-600",
+            "num_casa": "50",
+            "email": "mariana.oliveira@gmail.com"
+        },
+        "itens": [
+            {
+                "univ_cod": 12,
+                "cod": "12",
+                "nome": "Mouse Logitech M",
+                "preco_venda": 60.0,
+                "qtd": 1.0,
+                "total": 60.0
+            }
+        ],
+        "bruto": 60.0,
+        "desconto": 0.0,
+        "total": 60.0,
+        "pagamento": {
+            "Dinheiro": 0.0,
+            "Pix": [
+                60.0
+            ],
+            "Credito": [],
+            "Debito": []
+        },
+        "data": "04/06/2025"
     }
 ]

@@ -46,7 +46,7 @@
         "preco_venda": 1800.0,
         "preco_custo": 1200.0,
         "lucro": 50.0,
-        "qtd": 25.0,
+        "qtd": 22.0,
         "obs": "128GB, tela AMOLED"
     },
     {
@@ -56,7 +56,7 @@
         "preco_venda": 1.2,
         "preco_custo": 0.8,
         "lucro": 50.0,
-        "qtd": 500.0,
+        "qtd": 499.0,
         "obs": "Unidade, alta resistência"
     },
     {
@@ -66,7 +66,7 @@
         "preco_venda": 800.0,
         "preco_custo": 600.0,
         "lucro": 33.33,
-        "qtd": 40.0,
+        "qtd": 35.0,
         "obs": "HDMI, 75Hz"
     },
     {
@@ -76,7 +76,7 @@
         "preco_venda": 220.0,
         "preco_custo": 150.0,
         "lucro": 46.67,
-        "qtd": 35.0,
+        "qtd": 34.0,
         "obs": "Mandril 13mm, com maleta"
     },
     {
@@ -86,7 +86,7 @@
         "preco_venda": 15.0,
         "preco_custo": 10.0,
         "lucro": 50.0,
-        "qtd": 9.0,
+        "qtd": 8.0,
         "obs": "Luz branca, 800 lumens"
     },
     {
@@ -96,7 +96,7 @@
         "preco_venda": 25.0,
         "preco_custo": 15.0,
         "lucro": 66.67,
-        "qtd": 150.0,
+        "qtd": 149.0,
         "obs": "Suporta 4K"
     },
     {
@@ -116,7 +116,7 @@
         "preco_venda": 60.0,
         "preco_custo": 35.0,
         "lucro": 71.43,
-        "qtd": 20.0,
+        "qtd": 18.0,
         "obs": "Wireless, 1000 DPI"
     }
 ]

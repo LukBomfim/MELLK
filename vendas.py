@@ -786,7 +786,7 @@ def finalizarVenda(inf_vendas):
 def fecharVenda(venda, restante, j):
     estoque = receberEstoque()
 
-    # Salva a venda e fecha a janela
+    # Valida o pagamento
     if restante > 0:
         messagebox.showerror('Pagamento inválido', 'Pagamento menor que o valor total', parent=j)
         return
@@ -805,17 +805,22 @@ def fecharVenda(venda, restante, j):
         with open('vendas.json', 'w', encoding='utf-8') as arq:
             json.dump([venda], arq, indent=4, ensure_ascii=False)
 
-    # Remoção do item do estoque
-    # Optei por 'univ_cod' ao invés do 'cod', para evitar erro caso haja alteração no cadastro
+    # Atualiza o estoque
     for item in venda['itens']:
         for produto in estoque:
             if item['univ_cod'] == produto['univ_cod']:
                 produto['qtd'] -= item['qtd']
                 break
-
-    # Aplicação da alteração no estoque
     with open('estoque.json', 'w', encoding='utf-8') as arq:
         json.dump(estoque, arq, indent=4, ensure_ascii=False)
+
+    # Sincroniza contas a receber para vendas a crédito
+    if venda['pagamento'].get('Credito'):
+        try:
+            from financeiro import criarContasReceberVenda
+            criarContasReceberVenda(venda)
+        except ImportError:
+            messagebox.showwarning('Aviso', 'Módulo financeiro não encontrado. Contas a receber não foram criadas.', parent=j)
 
     # Pergunta se quer gerar recibo
     recibo = messagebox.askyesno('Recibo:', 'Deseja imprimir um recibo da venda?', parent=j)
@@ -1325,184 +1330,373 @@ def entryNumInt(n):
     except:
         return False
 
+def validar_data(data_str):
+    if not data_str:
+        return True
+    try:
+        datetime.strptime(data_str, '%d/%m/%Y')
+        return True
+    except ValueError:
+        return False
+
+def exportar_vendas_pdf(vendas, data_inicio='', data_fim=''):
+    arq = 'relatorio_vendas.pdf'
+    page_size = (595, 842)
+    pdf = canvas.Canvas(arq, pagesize=page_size)
+    largura, altura = page_size
+    margem = 20
+    pdf.setFont('Courier', 10)
+    pdf.setTitle('Relatório de Vendas')
+    y = altura - margem - 20
+    def linha(t, s=12, centro=False):
+        nonlocal y
+        if y < margem + 30:
+            pdf.showPage()
+            pdf.setFont('Courier', 10)
+            y = altura - margem - 20
+        if centro:
+            pdf.drawCentredString(largura / 2, y, t)
+        else:
+            pdf.drawString(margem, y, t)
+        y -= s
+    pdf.setFont('Courier-Bold', 12)
+    linha('RELATÓRIO DE VENDAS', centro=True, s=15)
+    pdf.setFont('Courier', 10)
+    periodo = f'Período: {data_inicio} a {data_fim}' if data_inicio and data_fim else 'Período: Todas as Vendas'
+    linha(periodo)
+    linha('-' * 80, s=12)
+    linha(f'{"N°":<6}{"Cliente":<20}{"Telefone":<15}{"Data":<12}{"Total":>12}')
+    linha('-' * 80)
+    for venda in vendas:
+        cliente = venda['cliente']['nome'][:19]
+        telefone = venda['cliente']['telefone'][:14]
+        data = venda.get('data', 'N/A')
+        total = f"R$ {venda['total']:.2f}"
+        linha(f"{venda['num_venda']:<6}{cliente:<20}{telefone:<15}{data:<12}{total:>12}")
+    linha('-' * 80, s=10)
+    total_vendas = sum(venda['total'] for venda in vendas)
+    linha(f'Total Geral: R$ {total_vendas:.2f}', s=10)
+    pdf.save()
+    try:
+        os.startfile(arq)
+    except:
+        messagebox.showinfo('Sucesso', f'Relatório salvo em {arq}')
+
+def receberVendas():
+    try:
+        with open('vendas.json', 'r', encoding='utf-8') as arq:
+            return json.load(arq)
+    except FileNotFoundError:
+        return []
+
+def gerarRecibo(venda, troco=0):
+    arq = f'recibo_venda{venda["num_venda"]}.pdf'
+    page_size = (227, 280)
+    recibo = canvas.Canvas(arq, pagesize=page_size)
+    largura, altura = page_size
+    margem = 10
+    recibo.setFont('Courier', 6)
+    recibo.setTitle(f'Recibo de Venda N°{venda["num_venda"]}')
+    y = altura - margem - 20
+    def linha(t, s=10, centro=False):
+        nonlocal y
+        if y < margem + 20:
+            recibo.showPage()
+            recibo.setFont('Courier', 8)
+            y = altura - margem - 20
+        if centro:
+            recibo.drawCentredString(largura / 2, y, t)
+        else:
+            recibo.drawString(margem, y, t)
+        y -= s
+    recibo.setFont('Courier-Bold', 10)
+    linha(f'RECIBO VENDA {venda["num_venda"]}', centro=True, s=12)
+    recibo.setFont('Courier', 8)
+    linha(f'Data: {venda["data"]}', s=10)
+    linha('-' * 40, s=10)
+    linha(f'CLIENTE: {venda["cliente"]["nome"][:20]:<20}')
+    linha(f'CPF/CNPJ: {venda["cliente"]["cpf_cnpj"]:<20}')
+    linha('-' * 40, s=10)
+    linha(f'{"ITEM":<20}{"VAL":>8}{"QTD":>6}{"TOTAL":>8}')
+    linha('-' * 40, s=8)
+    for item in venda['itens']:
+        nome = item['nome'][:20]
+        valor = float(item['preco_venda'])
+        qtd = float(item['qtd'])
+        total = float(item['total'])
+        linha(f'{nome:<20}{valor:>8.2f}{qtd:>6.1f}{total:>8.2f}')
+    total_final = float(venda['total'])
+    linha('-' * 40, s=10)
+    linha(f'{"BRUTO:":>26} R${venda["bruto"]:>8.2f}')
+    linha(f'{"DESCONTO:":>26} R${venda["desconto"]:>8.2f}')
+    linha(f'{"FINAL:":>26} R${total_final:>8.2f}')
+    linha('-' * 40, s=8)
+    linha('PAGAMENTOS', centro=True)
+    linha('-' * 40, s=8)
+    linha(f'{"TIPO":<15}{"VALOR":>10}')
+    linha('-' * 40, s=8)
+    for k, v in venda['pagamento'].items():
+        forma = k
+        valor = 0
+        if forma == 'Credito':
+            for pag in v:
+                valor = float(pag['valor'])
+                linha(f'{forma[:15]:<15}{valor:>10.2f}')
+        elif forma == 'Pix' or forma == 'Debito':
+            valor = sum(v)
+            if valor > 0:
+                linha(f'{forma[:15]:<15}{valor:>10.2f}')
+        else:
+            valor = v
+            if valor > 0:
+                linha(f'{forma[:15]:<15}{valor:>10.2f}')
+    linha('-' * 40, s=8)
+    linha(f'{"TROCO:":<15} R${troco:>10.2f}')
+    recibo.setFont('Courier', 6)
+    recibo.save()
+    os.startfile(arq)
 
 def listar_vendas():
-    frame = tk.Frame(root)
+    janela = tk.Toplevel(root)
+    janela.title('MELLK - Listar Vendas')
+    janela.state('zoomed')
+    janela.configure(bg='#1A3C34')
+    janela.grab_set()
+    frame = tk.Frame(janela, bg='#1A3C34')
     frame.place(relx=0, rely=0, relwidth=1, relheight=1)
 
-    colunas = ['num_venda', 'cliente_nome', 'cliente_telefone', 'data', 'total']  # Adiciona 'data'
-    lista = ttk.Treeview(frame, columns=colunas, show='headings')
-    
+    fonte = ('Arial', 12)
+    fonte_bold = ('Arial', 14, 'bold')
+
+    # Cabeçalho
+    header_frame = tk.Frame(frame, bg='#1A3C34')
+    header_frame.pack(pady=10, fill='x')
+    tk.Label(header_frame, text='Listar Vendas', font=fonte_bold, fg='white', bg='#1A3C34').pack()
+
+    # Filtros
+    filter_frame = tk.Frame(frame, bg='#1A3C34')
+    filter_frame.pack(pady=10, fill='x', padx=20)
+
+    tk.Label(filter_frame, text='N° Venda:', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=0, padx=5, sticky='e')
+    num_pesq = tk.Entry(filter_frame, font=fonte, width=10, validate='key', validatecommand=(janela.register(entryNumInt), '%P'))
+    num_pesq.grid(row=0, column=1, padx=5, pady=5)
+
+    tk.Label(filter_frame, text='Nome Cliente:', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=2, padx=5, sticky='e')
+    nome_pesq = tk.Entry(filter_frame, font=fonte, width=20)
+    nome_pesq.grid(row=0, column=3, padx=5, pady=5)
+
+    tk.Label(filter_frame, text='Telefone:', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=4, padx=5, sticky='e')
+    telefone_pesq = tk.Entry(filter_frame, font=fonte, width=15)
+    telefone_pesq.grid(row=0, column=5, padx=5, pady=5)
+
+    tk.Label(filter_frame, text='Data Início (DD/MM/AAAA):', font=fonte, fg='white', bg='#1A3C34').grid(row=1, column=0, padx=5, sticky='e')
+    data_inicio = tk.Entry(filter_frame, font=fonte, width=12)
+    data_inicio.grid(row=1, column=1, padx=5, pady=5)
+
+    tk.Label(filter_frame, text='Data Fim (DD/MM/AAAA):', font=fonte, fg='white', bg='#1A3C34').grid(row=1, column=2, padx=5, sticky='e')
+    data_fim = tk.Entry(filter_frame, font=fonte, width=12)
+    data_fim.grid(row=1, column=3, padx=5, pady=5)
+
+    # Tabela
+    colunas = ['num_venda', 'cliente_nome', 'cliente_telefone', 'data', 'total', 'status']
+    lista = ttk.Treeview(frame, columns=colunas, show='headings', height=15)
     lista.heading('num_venda', text='N°')
     lista.heading('cliente_nome', text='Cliente')
     lista.heading('cliente_telefone', text='Telefone')
-    lista.heading('data', text='Data')  
-    lista.heading('total', text='Valor')
-    
+    lista.heading('data', text='Data')
+    lista.heading('total', text='Total')
+    lista.heading('status', text='Status')
     lista.column('num_venda', width=50)
-    lista.column('cliente_nome', width=200)
-    lista.column('cliente_telefone', width=100)
+    lista.column('cliente_nome', width=250)
+    lista.column('cliente_telefone', width=150)
     lista.column('data', width=100)
     lista.column('total', width=100)
-    lista.pack(fill='both', expand=True, padx=10, pady=10)
+    lista.column('status', width=100)
+    scrollbar = ttk.Scrollbar(frame, orient='vertical', command=lista.yview)
+    lista.configure(yscrollcommand=scrollbar.set)
+    lista.pack(side=tk.LEFT, fill='both', expand=True, padx=10, pady=10)
+    scrollbar.pack(side=tk.RIGHT, fill='y')
 
-    def pesquisarVenda(e=None):
-        if numPesq.get() != '':
-            num = int(numPesq.get())
-        else:
-            num = ''
-
-        nome = nomePesq.get().upper()
-
-        telefone = ''
-        for n in telefonePesq.get(): # Filtrando os números
-            if n.isdigit():
-                telefone += n
-
+    def pesquisar_venda(e=None):
+        num = num_pesq.get()
+        nome = nome_pesq.get().upper()
+        telefone = ''.join(n for n in telefone_pesq.get() if n.isdigit())
+        inicio = data_inicio.get()
+        fim = data_fim.get()
+        if not validar_data(inicio) or not validar_data(fim):
+            messagebox.showerror('Erro', 'Formato de data inválido. Use DD/MM/AAAA', parent=janela)
+            return
+        try:
+            num = int(num) if num else None
+            inicio_dt = datetime.strptime(inicio, '%d/%m/%Y') if inicio else None
+            fim_dt = datetime.strptime(fim, '%d/%m/%Y') if fim else None
+        except ValueError:
+            messagebox.showerror('Erro', 'Formato de data inválido. Use DD/MM/AAAA', parent=janela)
+            return
         vendas = receberVendas()
         resultados = []
-
         for venda in vendas:
-            telcliente = ''
-            for n in venda['cliente']['telefone']:
-                if n.isdigit():
-                    telcliente += n
-
-            if (num == venda['num_venda'] or num == '' and
-                nome in venda['cliente']['nome'] and
-                telefone in telcliente):
-
+            tel_cliente = ''.join(n for n in venda['cliente']['telefone'] if n.isdigit())
+            data_venda = venda.get('data', '')
+            try:
+                data_venda_dt = datetime.strptime(data_venda, '%d/%m/%Y') if data_venda else None
+            except ValueError:
+                data_venda_dt = None
+            if (
+                (num is None or venda['num_venda'] == num) and
+                (not nome or nome in venda['cliente']['nome'].upper()) and
+                (not telefone or telefone in tel_cliente) and
+                (not inicio_dt or (data_venda_dt and data_venda_dt >= inicio_dt)) and
+                (not fim_dt or (data_venda_dt and data_venda_dt <= fim_dt))
+            ):
                 resultados.append(venda)
-
-        for v in lista.get_children():
-            lista.delete(v)
-        for result in resultados:
-            lista.insert('', 'end', iid=result['num_venda'], values=(
-                result['num_venda'],
-                result['cliente']['nome'],
-                result['cliente']['telefone'],
-                f'R$ {result["total"]:.2f}'
+        for item in lista.get_children():
+            lista.delete(item)
+        for venda in resultados:
+            status = 'Crédito' if venda['pagamento'].get('Credito') else 'Pago'
+            lista.insert('', 'end', iid=venda['num_venda'], values=(
+                venda['num_venda'],
+                venda['cliente']['nome'],
+                venda['cliente']['telefone'],
+                venda.get('data', 'N/A'),
+                f'R$ {venda["total"]:.2f}',
+                status
             ))
+        return resultados
 
-    def atualizarLista():
-        vendas = receberVendas()
-
-        for v in lista.get_children():
-            lista.delete(v)
-
-        for venda in vendas:
-            lista.insert('', 'end', iid=venda["num_venda"], values=(
-                venda["num_venda"],
-                venda["cliente"]["nome"],
-                venda["cliente"]["telefone"],
-                venda.get("data", "N/A"),  # Usa a data ou "-" se não existir
-                f'R$ {venda["total"]:.2f}'
-            ))
-
-    def excluirVenda(n, j, o=False, e=None):
-        vendas = receberVendas()
-
+    def excluir_venda():
         try:
-            n = int(n)
+            num = int(lista.focus())
         except:
+            messagebox.showerror('Erro', 'Selecione uma venda para excluir', parent=janela)
             return
-
-        confirm = messagebox.askyesno('Excluir', f'Tem certeza que deseja excluir a venda N°{n}?', parent=j)
+        confirm = messagebox.askyesno('Excluir', f'Tem certeza que deseja excluir a venda N°{num}?', parent=janela)
         if confirm:
-            for venda in vendas:
-                if venda["num_venda"] == n:
-                    vendas.remove(venda)
+            vendas = receberVendas()
+            vendas = [v for v in vendas if v['num_venda'] != num]
+            with open('vendas.json', 'w', encoding='utf-8') as arq:
+                json.dump(vendas, arq, indent=4, ensure_ascii=False)
+            pesquisar_venda()
+            messagebox.showinfo('Sucesso', f'Venda N°{num} excluída', parent=janela)
 
-                    with open('vendas.json', 'w', encoding='utf-8') as arq:
-                        json.dump(vendas, arq, indent=4, ensure_ascii=False)
-
-                    atualizarLista()
-
-                    if o:
-                        j.destroy()
-
-                    break
-
-    def abrirVenda(e=None):
-        vendas = receberVendas()
-
+    def abrir_venda(e=None):
         try:
-            n = int(lista.focus())
+            num_venda = int(lista.focus())
         except:
             return
+        vendas = receberVendas()
+        venda = next((v for v in vendas if v['num_venda'] == num_venda), None)
+        if not venda:
+            messagebox.showerror('Erro', 'Venda não encontrada', parent=janela)
+            return
+        detalhe_janela = tk.Toplevel(janela)
+        detalhe_janela.title(f'Venda N°{num_venda}')
+        detalhe_janela.geometry('1000x700')
+        detalhe_janela.configure(bg='#1A3C34')
+        detalhe_janela.grab_set()
 
-        janela = tk.Toplevel(root)
-        janela.grab_set()
-        janela.geometry('1050x600')
+        detalhe_frame = tk.Frame(detalhe_janela, bg='#1A3C34')
+        detalhe_frame.pack(fill='both', expand=True, padx=10, pady=10)
 
-        for venda in vendas:
-            if venda["num_venda"] == n:
-                tk.Label(janela, text=f'Venda N°{n} - Cliente: {venda["cliente"]["nome"]}').pack(pady=5)
-                tk.Label(janela, text=f'Data: {venda.get("data", "-")}').pack(pady=5)  # Mostra a data
-                tk.Label(janela, text=f'Telefone: {venda["cliente"]["telefone"]}').pack(pady=5)
-                tk.Label(janela, text=f'CPF/CNPJ: {venda["cliente"]["cpf_cnpj"]}').pack(pady=5)
-                tk.Label(janela, text=f'CEP: {venda["cliente"]["cep"]}').pack(pady=5)
-                tk.Label(janela, text=f'N°: {venda["cliente"]["num_casa"]}').pack(pady=5)
-                tk.Label(janela, text=f'E-mail: {venda["cliente"]["email"]}').pack(pady=5)
+        info_frame = tk.Frame(detalhe_frame, bg='#1A3C34')
+        info_frame.pack(fill='x', pady=10)
+        tk.Label(info_frame, text=f'Venda N°{num_venda} - Cliente: {venda["cliente"]["nome"]}', font=fonte_bold, fg='white', bg='#1A3C34').pack(anchor='w')
+        tk.Label(info_frame, text=f'Data: {venda.get("data", "N/A")}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+        tk.Label(info_frame, text=f'Telefone: {venda["cliente"]["telefone"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+        tk.Label(info_frame, text=f'CPF/CNPJ: {venda["cliente"]["cpf_cnpj"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+        tk.Label(info_frame, text=f'CEP: {venda["cliente"]["cep"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+        tk.Label(info_frame, text=f'N° Casa: {venda["cliente"]["num_casa"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+        tk.Label(info_frame, text=f'E-mail: {venda["cliente"]["email"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+        tk.Label(info_frame, text=f'Valor Bruto: R$ {venda["bruto"]:.2f}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+        tk.Label(info_frame, text=f'Desconto: R$ {venda["desconto"]:.2f}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+        tk.Label(info_frame, text=f'Total: R$ {venda["total"]:.2f}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
 
-                tk.Label(janela, text=f'Valor dos itens: R$ {venda["bruto"]:.2f}').pack(pady=5)
-                tk.Label(janela, text=f'Desconto: R$ {venda["desconto"]:.2f}').pack(pady=5)
-                tk.Label(janela, text=f'Total: R$ {venda["total"]:.2f}').pack(pady=5)
+        tk.Label(detalhe_frame, text='Itens', font=fonte_bold, fg='white', bg='#1A3C34').pack(anchor='w', pady=5)
+        colunas_itens = ['cod', 'nome', 'preco_venda', 'qtd', 'total']
+        lista_itens = ttk.Treeview(detalhe_frame, columns=colunas_itens, show='headings')
+        lista_itens.heading('cod', text='Cód.')
+        lista_itens.heading('nome', text='Nome')
+        lista_itens.heading('preco_venda', text='Valor Unit.')
+        lista_itens.heading('qtd', text='Qtd.')
+        lista_itens.heading('total', text='Total')
+        lista_itens.column('cod', width=100)
+        lista_itens.column('nome', width=300)
+        lista_itens.column('preco_venda', width=100)
+        lista_itens.column('qtd', width=100)
+        lista_itens.column('total', width=100)
+        lista_itens.pack(fill='both', expand=True, padx=10, pady=10)
+        for item in venda['itens']:
+            lista_itens.insert('', 'end', values=(
+                item['cod'],
+                item['nome'],
+                f'R$ {item["preco_venda"]:.2f}',
+                f'{item["qtd"]:.2f}',
+                f'R$ {item["total"]:.2f}'
+            ))
 
-                colunas = ['cod', 'nome', 'preco_venda', 'qtd', 'total']
-                listaItens = ttk.Treeview(janela, columns=colunas, show='headings')
-                listaItens.heading('cod', text='Cód.')
-                listaItens.heading('nome', text='Nome')
-                listaItens.heading('preco_venda', text='Valor Unit.')
-                listaItens.heading('qtd', text='Qtd.')
-                listaItens.heading('total', text='Total')
-                listaItens.column('cod', width=100)
-                listaItens.column('nome', width=300)
-                listaItens.column('preco_venda', width=100)
-                listaItens.column('qtd', width=100)
-                listaItens.column('total', width=100)
-                listaItens.pack(fill='both', expand=True, padx=10, pady=10)
-
-                for item in venda['itens']:
-                    listaItens.insert('', 'end', values=(
-                        item['cod'],
-                        item['nome'],
-                        f'R$ {item["preco_venda"]:.2f}',
-                        f'{item["qtd"]:.2f}',
-                        f'R$ {item["total"]:.2f}'
+        tk.Label(detalhe_frame, text='Formas de Pagamento', font=fonte_bold, fg='white', bg='#1A3C34').pack(anchor='w', pady=5)
+        colunas_pag = ['forma', 'valor', 'obs']
+        lista_pag = ttk.Treeview(detalhe_frame, columns=colunas_pag, show='headings', height=5)
+        lista_pag.heading('forma', text='Forma')
+        lista_pag.heading('valor', text='Valor')
+        lista_pag.heading('obs', text='Observação')
+        lista_pag.column('forma', width=150)
+        lista_pag.column('valor', width=100)
+        lista_pag.column('obs', width=200)
+        lista_pag.pack(fill='x', padx=10, pady=5)
+        for forma, valor in venda['pagamento'].items():
+            if forma == 'Credito':
+                for p in valor:
+                    lista_pag.insert('', 'end', values=(
+                        'Cartão de Crédito',
+                        f'R$ {p["valor"]:.2f}',
+                        f'Parcelas: {p["parcelas"]}'
                     ))
+            elif forma == 'Pix' or forma == 'Debito':
+                if sum(valor) > 0:
+                    lista_pag.insert('', 'end', values=(
+                        forma,
+                        f'R$ {sum(valor):.2f}',
+                        ''
+                    ))
+            elif valor > 0:
+                lista_pag.insert('', 'end', values=(
+                    forma,
+                    f'R$ {valor:.2f}',
+                    ''
+                ))
 
-                tk.Button(janela, text='Excluir', command=lambda: excluirVenda(n, janela, True), **button_style).pack(pady=10)
+        button_frame = tk.Frame(detalhe_frame, bg='#1A3C34')
+        button_frame.pack(pady=10)
+        tk.Button(button_frame, text='Gerar Recibo', command=lambda: gerarRecibo(venda), **button_style).pack(side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text='Excluir', command=lambda: [excluir_venda(), detalhe_janela.destroy()], **button_style).pack(side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text='Fechar', command=detalhe_janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
 
-                break
-                
-    tk.Label(frame, text='Venda N°').pack()
-    numPesq = tk.Entry(frame, validatecommand=(frame.register(entryNumInt), '%P'))
-    numPesq.pack()
-    numPesq.bind('<Return>', pesquisarVenda)
+    def exportar_vendas():
+        resultados = pesquisar_venda()
+        exportar_vendas_pdf(resultados, data_inicio.get(), data_fim.get())
 
-    tk.Label(frame, text='Nome').pack()
-    nomePesq = tk.Entry(frame)
-    nomePesq.pack()
-    nomePesq.bind('<Return>', pesquisarVenda)
-
-    tk.Label(frame, text='Telefone').pack()
-    telefonePesq = tk.Entry(frame)
-    telefonePesq.pack()
-    telefonePesq.bind('<Return>', pesquisarVenda)
-
-    tk.Button(frame, text='Procurar', command=pesquisarVenda).pack()
-
-    atualizarLista()
-    lista.bind('<Double-1>', lambda event: abrirVenda(event))
-    lista.bind('<Delete>', lambda event: excluirVenda(lista.focus(), frame, False, event))
-
+    # Botões de ação
     button_frame = tk.Frame(frame, bg='#1A3C34')
     button_frame.pack(pady=10)
-    tk.Button(button_frame, text='Abrir venda', command=abrirVenda, **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Excluir', command=lambda: excluirVenda(lista.focus(), frame, False), **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Voltar', command=frame.destroy, **button_style).pack(side=tk.LEFT, padx=5)
-    
+    tk.Button(button_frame, text='Pesquisar', command=pesquisar_venda, **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Gerar Relatório', command=exportar_vendas, **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Abrir Venda', command=abrir_venda, **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Excluir', command=excluir_venda, **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Fechar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
+
+    # Bindings
+    num_pesq.bind('<Return>', pesquisar_venda)
+    nome_pesq.bind('<Return>', pesquisar_venda)
+    telefone_pesq.bind('<Return>', pesquisar_venda)
+    data_inicio.bind('<Return>', pesquisar_venda)
+    data_fim.bind('<Return>', pesquisar_venda)
+    lista.bind('<Double-1>', abrir_venda)
+    lista.bind('<Return>', abrir_venda)
+
+    # Carregar vendas iniciais
+    pesquisar_venda()
+        
 def novoOrcamento():
     frame = tk.Frame(root)
     frame.place(relx=0, rely=0, relwidth=1, relheight=1)

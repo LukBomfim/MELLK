@@ -1,0 +1,166 @@
+{
+    "contas_receber": [
+        {
+            "id": 1,
+            "num_venda": "1001",
+            "cliente_nome": "João Silva",
+            "valor": 500.0,
+            "vencimento": "30/06/2025",
+            "status": "Pago"
+        },
+        {
+            "id": 2,
+            "num_venda": "1002",
+            "cliente_nome": "Maria Oliveira",
+            "valor": 1200.0,
+            "vencimento": "05/07/2025",
+            "status": "Pendente"
+        },
+        {
+            "id": 3,
+            "num_venda": "1003",
+            "cliente_nome": "Carlos Souza",
+            "valor": 750.5,
+            "vencimento": "10/07/2025",
+            "status": "Pendente"
+        },
+        {
+            "id": 4,
+            "num_venda": "1004",
+            "cliente_nome": "Ana Santos",
+            "valor": 320.0,
+            "vencimento": "15/07/2025",
+            "status": "Pago"
+        },
+        {
+            "id": 5,
+            "num_venda": "1005",
+            "cliente_nome": "Pedro Costa",
+            "valor": 980.0,
+            "vencimento": "20/07/2025",
+            "status": "Pendente"
+        },
+        {
+            "id": 6,
+            "num_venda": "3",
+            "cliente_nome": "Ana Silva",
+            "valor": 27.5,
+            "vencimento": "02/07/2025",
+            "status": "Pendente"
+        },
+        {
+            "id": 7,
+            "num_venda": "3",
+            "cliente_nome": "Ana Silva",
+            "valor": 27.5,
+            "vencimento": "01/08/2025",
+            "status": "Pendente"
+        },
+        {
+            "id": 10,
+            "num_venda": "4",
+            "cliente_nome": "Mathias Borges",
+            "valor": 600.0,
+            "vencimento": "02/09/2025",
+            "status": "Pendente"
+        },
+        {
+            "id": 11,
+            "num_venda": "4",
+            "cliente_nome": "Mathias Borges",
+            "valor": 6.25,
+            "vencimento": "04/07/2025",
+            "status": "Pago"
+        },
+        {
+            "id": 12,
+            "num_venda": "4",
+            "cliente_nome": "Mathias Borges",
+            "valor": 6.25,
+            "vencimento": "03/08/2025",
+            "status": "Pendente"
+        },
+        {
+            "id": 13,
+            "num_venda": "4",
+            "cliente_nome": "Mathias Borges",
+            "valor": 6.25,
+            "vencimento": "02/09/2025",
+            "status": "Pendente"
+        },
+        {
+            "id": 14,
+            "num_venda": "4",
+            "cliente_nome": "Mathias Borges",
+            "valor": 6.25,
+            "vencimento": "02/10/2025",
+            "status": "Pendente"
+        },
+        {
+            "id": 15,
+            "num_venda": "5",
+            "cliente_nome": "Mathias Silva",
+            "valor": 30.0,
+            "vencimento": "04/07/2025",
+            "status": "Pago"
+        },
+        {
+            "id": 16,
+            "num_venda": "5",
+            "cliente_nome": "Mathias Silva",
+            "valor": 30.0,
+            "vencimento": "03/08/2025",
+            "status": "Pendente"
+        }
+    ],
+    "contas_pagar": [
+        {
+            "id": 1,
+            "credor": "Fornecedor ABC",
+            "tipo": "Fornecedor",
+            "valor": 10000.0,
+            "vencimento": "15/06/2025",
+            "status": "Pago"
+        },
+        {
+            "id": 2,
+            "credor": "Aluguel",
+            "tipo": "Fixa",
+            "valor": 2500.0,
+            "vencimento": "01/07/2025",
+            "status": "Pendente"
+        },
+        {
+            "id": 3,
+            "credor": "Energia",
+            "tipo": "Fixa",
+            "valor": 850.0,
+            "vencimento": "10/07/2025",
+            "status": "Pendente"
+        },
+        {
+            "id": 4,
+            "credor": "Fornecedor XYZ",
+            "tipo": "Fornecedor",
+            "valor": 3500.0,
+            "vencimento": "12/07/2025",
+            "status": "Pago"
+        },
+        {
+            "id": 5,
+            "credor": "Internet",
+            "tipo": "Fixa",
+            "valor": 200.0,
+            "vencimento": "20/07/2025",
+            "status": "Pendente"
+        },
+        {
+            "id": 6,
+            "credor": "Água",
+            "tipo": "Fixa",
+            "valor": 180.0,
+            "vencimento": "25/07/2025",
+            "status": "Pendente"
+        }
+    ]
+}

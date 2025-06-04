@@ -5,7 +5,7 @@ import os
 import clientes, estoque, vendas, financeiro
 
 # VERIFICAÇÃO SE OS ARQUIVOS EXISTEM
-arq = ('clientes.json', 'estoque.json', 'vendas.json')
+arq = ('clientes.json', 'estoque.json', 'vendas.json', 'financeiro.json')
 for a in arq:
     try:
         with open(a, 'r', encoding='utf-8') as arq:

@@ -30,5 +30,3 @@ def novaCompra():
     lista.heading('qtd', text='Qtd.')
     lista.heading('total', text='Total')
     lista.pack()
-
-
