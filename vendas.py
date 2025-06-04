@@ -51,7 +51,7 @@ def inicio():
         pady=10)  # Pedido com cliente cadastrado
     tk.Button(button_frame, text='Listar Vendas', command=listar_vendas, **button_style).pack(
         pady=10)  # Novo orçamento
-    tk.Button(button_frame, text='Novo Orçamento', command=orcamento, **button_style).pack(
+    tk.Button(button_frame, text='Novo Orçamento', command=novoOrcamento, **button_style).pack(
         pady=10)  # Novo orçamento
 
     # Mantém a janela aberta, rodando o loop principal
@@ -1346,6 +1346,44 @@ def listar_vendas():
     lista.column('total', width=100)
     lista.pack(fill='both', expand=True, padx=10, pady=10)
 
+    def pesquisarVenda(e=None):
+        if numPesq.get() != '':
+            num = int(numPesq.get())
+        else:
+            num = ''
+
+        nome = nomePesq.get().upper()
+
+        telefone = ''
+        for n in telefonePesq.get(): # Filtrando os números
+            if n.isdigit():
+                telefone += n
+
+        vendas = receberVendas()
+        resultados = []
+
+        for venda in vendas:
+            telcliente = ''
+            for n in venda['cliente']['telefone']:
+                if n.isdigit():
+                    telcliente += n
+
+            if (num == venda['num_venda'] or num == '' and
+                nome in venda['cliente']['nome'] and
+                telefone in telcliente):
+
+                resultados.append(venda)
+
+        for v in lista.get_children():
+            lista.delete(v)
+        for result in resultados:
+            lista.insert('', 'end', iid=result['num_venda'], values=(
+                result['num_venda'],
+                result['cliente']['nome'],
+                result['cliente']['telefone'],
+                f'R$ {result["total"]:.2f}'
+            ))
+
     def atualizarLista():
         vendas = receberVendas()
 
@@ -1437,6 +1475,23 @@ def listar_vendas():
                 tk.Button(janela, text='Excluir', command=lambda: excluirVenda(n, janela, True), **button_style).pack(pady=10)
 
                 break
+                
+    tk.Label(frame, text='Venda N°').pack()
+    numPesq = tk.Entry(frame, validatecommand=(frame.register(entryNumInt), '%P'))
+    numPesq.pack()
+    numPesq.bind('<Return>', pesquisarVenda)
+
+    tk.Label(frame, text='Nome').pack()
+    nomePesq = tk.Entry(frame)
+    nomePesq.pack()
+    nomePesq.bind('<Return>', pesquisarVenda)
+
+    tk.Label(frame, text='Telefone').pack()
+    telefonePesq = tk.Entry(frame)
+    telefonePesq.pack()
+    telefonePesq.bind('<Return>', pesquisarVenda)
+
+    tk.Button(frame, text='Procurar', command=pesquisarVenda).pack()
 
     atualizarLista()
     lista.bind('<Double-1>', lambda event: abrirVenda(event))
@@ -1447,6 +1502,25 @@ def listar_vendas():
     tk.Button(button_frame, text='Abrir venda', command=abrirVenda, **button_style).pack(side=tk.LEFT, padx=5)
     tk.Button(button_frame, text='Excluir', command=lambda: excluirVenda(lista.focus(), frame, False), **button_style).pack(side=tk.LEFT, padx=5)
     tk.Button(button_frame, text='Voltar', command=frame.destroy, **button_style).pack(side=tk.LEFT, padx=5)
-def orcamento():
-    # Função placeholder pro orçamento, ainda não tá implementada
-    return
+    
+def novoOrcamento():
+    frame = tk.Frame(root)
+    frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+    tk.Label(frame, text='Cliente:')
+    cliente = tk.Entry(frame)
+
+    colunas = ['cod', 'nome', 'preco_venda', 'qtd', 'total']
+    lista = ttk.Treeview(frame, columns=colunas, show='headings')
+    lista.heading('cod', text='Cod.')
+    lista.heading('nome', text='Item')
+    lista.heading('preco_venda', text='Valor Unit.')
+    lista.heading('qtd', text='Qtd.')
+    lista.heading('total', text='Total')
+    lista.pack()
+
+    tk.Label(frame, text='Observações:')
+    obs = tk.Text(frame)
+
+    tk.Button(frame, text='Salvar Orçamento').pack()
+    tk.Button(frame, text='Voltar', command=frame.destroy).pack()
