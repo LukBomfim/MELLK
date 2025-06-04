@@ -66,6 +66,7 @@ def receberEstoque():
     except FileNotFoundError:
         return []  # Se não achar o arquivo, retorna uma lista vazia
 
+
 def receberClientes():
     # Carrega os clientes de um arquivo JSON
     try:
@@ -74,6 +75,7 @@ def receberClientes():
     except FileNotFoundError:
         return []  # Se o arquivo não existir, retorna lista vazia
 
+
 def receberVendas():
     # Carrega as vendas de um arquivo JSON
     try:
@@ -81,6 +83,7 @@ def receberVendas():
             return json.load(arq)  # Devolve a lista de vendas
     except FileNotFoundError:
         return []  # Se o arquivo não existir, retorna lista vazia
+
 
 def vendaDireta():
     # Começa uma venda direta, sem precisar escolher cliente
@@ -765,13 +768,13 @@ def finalizarVenda(inf_vendas):
             'desconto': desconto,
             'total': total_venda,
             'pagamento': pagamentos,
-            'data': datetime.now().strftime("%d/%m/%Y") #Adicionando a data no ato da vendas...
+            'data': datetime.now().strftime("%d/%m/%Y")  # Adicionando a data no ato da vendas...
         }
         fecharVenda(venda, total_venda - total_pago, janela)
 
     # Atualiza os totais quando o desconto muda
     descontoEntry.bind('<KeyRelease>', lambda event: desc(event, janela, descontoEntry, total, totalPago(pagamentos),
-                                                     valorTotal, valorRestante))
+                                                          valorTotal, valorRestante))
 
     # Botões pra gerenciar o pagamento
     button_frame = tk.Frame(frame, bg='#1A3C34')
@@ -820,7 +823,8 @@ def fecharVenda(venda, restante, j):
             from financeiro import criarContasReceberVenda
             criarContasReceberVenda(venda)
         except ImportError:
-            messagebox.showwarning('Aviso', 'Módulo financeiro não encontrado. Contas a receber não foram criadas.', parent=j)
+            messagebox.showwarning('Aviso', 'Módulo financeiro não encontrado. Contas a receber não foram criadas.',
+                                   parent=j)
 
     # Pergunta se quer gerar recibo
     recibo = messagebox.askyesno('Recibo:', 'Deseja imprimir um recibo da venda?', parent=j)
@@ -862,7 +866,7 @@ def gerarRecibo(venda, troco=0):
     recibo.setFont('Courier-Bold', 10)
     linha(f'RECIBO VENDA {venda["num_venda"]}', centro=True, s=12)
     recibo.setFont('Courier', 8)
-    linha(f'Data: {venda["data"]}', s=10) #linh da data!
+    linha(f'Data: {venda["data"]}', s=10)  # linh da data!
     linha('-' * 40, s=10)
 
     # Dados do cliente
@@ -965,7 +969,7 @@ def itemEstoque():
     fonte = ('Arial', 12)
     num_float = (janela.register(entryNumFloat), '%P')
 
-    cod = tk.Entry(frame, font=fonte, width=30)
+    cod = tk.Entry(frame, font=fonte, width=30, state='disabled', disabledbackground='#E5E5E5')
     nome = tk.Entry(frame, font=fonte, width=30, state='disabled', disabledbackground='#E5E5E5')
     venda = tk.Entry(frame, font=fonte, width=30, validate='key', validatecommand=num_float)
     qtd = tk.Entry(frame, font=fonte, width=30, validate='key', validatecommand=num_float)
@@ -986,8 +990,6 @@ def itemEstoque():
     tk.Label(frame, text='Disponível:', font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
     disp.pack(pady=2)
 
-    cod.bind('<KeyRelease>', lambda event: item_por_cod(event, cod, nome, venda, disp))
-    cod.bind('<KeyRelease>', lambda event: totalItem(event, venda, qtd, total), add='+')
     venda.bind('<KeyRelease>', lambda event: totalItem(event, venda, qtd, total))
     qtd.bind('<KeyRelease>', lambda event: totalItem(event, venda, qtd, total))
 
@@ -1207,7 +1209,7 @@ def procurarItem(d, j):
     # Janela pra buscar itens no estoque
     estq = receberEstoque()
 
-    janela = tk.Toplevel(root)
+    janela = tk.Toplevel(j)
     janela.title('MELLK - Procurar Item')
     janela.geometry('700x700')
     janela.configure(bg='#1A3C34')
@@ -1277,13 +1279,15 @@ def procurarItem(d, j):
     nome.bind('<KeyRelease>', lambda event: procurar(tabela, pesq, estq))
     obs.bind('<KeyRelease>', lambda event: procurar(tabela, pesq, estq))
 
-    def selecionar(tabela, estq, d, j):
+    def selecionar(tabela, estq, d, j, e=None):
         if tabela.focus():
             cod = int(tabela.focus())
             for item in estq:
                 if cod == item['cod']:
+                    d[0].configure(state='normal')
                     d[0].delete(0, tk.END)
                     d[0].insert(0, item['cod'])
+                    d[0].configure(state='disabled')
                     d[1].configure(state='normal')
                     d[1].delete(0, tk.END)
                     d[1].insert(0, item['nome'])
@@ -1306,6 +1310,8 @@ def procurarItem(d, j):
         side=tk.LEFT, padx=5)
     tk.Button(button_frame, text='Selecionar', command=lambda: selecionar(tabela, estq, d, janela),
               **button_style).pack(side=tk.LEFT, padx=5)
+    tabela.bind('<Double-1>', lambda event: selecionar(tabela, estq, d, janela, event))
+
     tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
 
 
@@ -1330,6 +1336,7 @@ def entryNumInt(n):
     except:
         return False
 
+
 def validar_data(data_str):
     if not data_str:
         return True
@@ -1338,6 +1345,7 @@ def validar_data(data_str):
         return True
     except ValueError:
         return False
+
 
 def exportar_vendas_pdf(vendas, data_inicio='', data_fim=''):
     arq = 'relatorio_vendas.pdf'
@@ -1348,6 +1356,7 @@ def exportar_vendas_pdf(vendas, data_inicio='', data_fim=''):
     pdf.setFont('Courier', 10)
     pdf.setTitle('Relatório de Vendas')
     y = altura - margem - 20
+
     def linha(t, s=12, centro=False):
         nonlocal y
         if y < margem + 30:
@@ -1359,6 +1368,7 @@ def exportar_vendas_pdf(vendas, data_inicio='', data_fim=''):
         else:
             pdf.drawString(margem, y, t)
         y -= s
+
     pdf.setFont('Courier-Bold', 12)
     linha('RELATÓRIO DE VENDAS', centro=True, s=15)
     pdf.setFont('Courier', 10)
@@ -1382,12 +1392,14 @@ def exportar_vendas_pdf(vendas, data_inicio='', data_fim=''):
     except:
         messagebox.showinfo('Sucesso', f'Relatório salvo em {arq}')
 
+
 def receberVendas():
     try:
         with open('vendas.json', 'r', encoding='utf-8') as arq:
             return json.load(arq)
     except FileNotFoundError:
         return []
+
 
 def gerarRecibo(venda, troco=0):
     arq = f'recibo_venda{venda["num_venda"]}.pdf'
@@ -1398,6 +1410,7 @@ def gerarRecibo(venda, troco=0):
     recibo.setFont('Courier', 6)
     recibo.setTitle(f'Recibo de Venda N°{venda["num_venda"]}')
     y = altura - margem - 20
+
     def linha(t, s=10, centro=False):
         nonlocal y
         if y < margem + 20:
@@ -1409,6 +1422,7 @@ def gerarRecibo(venda, troco=0):
         else:
             recibo.drawString(margem, y, t)
         y -= s
+
     recibo.setFont('Courier-Bold', 10)
     linha(f'RECIBO VENDA {venda["num_venda"]}', centro=True, s=12)
     recibo.setFont('Courier', 8)
@@ -1456,6 +1470,7 @@ def gerarRecibo(venda, troco=0):
     recibo.save()
     os.startfile(arq)
 
+
 def listar_vendas():
     janela = tk.Toplevel(root)
     janela.title('MELLK - Listar Vendas')
@@ -1477,23 +1492,30 @@ def listar_vendas():
     filter_frame = tk.Frame(frame, bg='#1A3C34')
     filter_frame.pack(pady=10, fill='x', padx=20)
 
-    tk.Label(filter_frame, text='N° Venda:', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=0, padx=5, sticky='e')
-    num_pesq = tk.Entry(filter_frame, font=fonte, width=10, validate='key', validatecommand=(janela.register(entryNumInt), '%P'))
+    tk.Label(filter_frame, text='N° Venda:', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=0, padx=5,
+                                                                                        sticky='e')
+    num_pesq = tk.Entry(filter_frame, font=fonte, width=10, validate='key',
+                        validatecommand=(janela.register(entryNumInt), '%P'))
     num_pesq.grid(row=0, column=1, padx=5, pady=5)
 
-    tk.Label(filter_frame, text='Nome Cliente:', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=2, padx=5, sticky='e')
+    tk.Label(filter_frame, text='Nome Cliente:', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=2, padx=5,
+                                                                                            sticky='e')
     nome_pesq = tk.Entry(filter_frame, font=fonte, width=20)
     nome_pesq.grid(row=0, column=3, padx=5, pady=5)
 
-    tk.Label(filter_frame, text='Telefone:', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=4, padx=5, sticky='e')
+    tk.Label(filter_frame, text='Telefone:', font=fonte, fg='white', bg='#1A3C34').grid(row=0, column=4, padx=5,
+                                                                                        sticky='e')
     telefone_pesq = tk.Entry(filter_frame, font=fonte, width=15)
     telefone_pesq.grid(row=0, column=5, padx=5, pady=5)
 
-    tk.Label(filter_frame, text='Data Início (DD/MM/AAAA):', font=fonte, fg='white', bg='#1A3C34').grid(row=1, column=0, padx=5, sticky='e')
+    tk.Label(filter_frame, text='Data Início (DD/MM/AAAA):', font=fonte, fg='white', bg='#1A3C34').grid(row=1, column=0,
+                                                                                                        padx=5,
+                                                                                                        sticky='e')
     data_inicio = tk.Entry(filter_frame, font=fonte, width=12)
     data_inicio.grid(row=1, column=1, padx=5, pady=5)
 
-    tk.Label(filter_frame, text='Data Fim (DD/MM/AAAA):', font=fonte, fg='white', bg='#1A3C34').grid(row=1, column=2, padx=5, sticky='e')
+    tk.Label(filter_frame, text='Data Fim (DD/MM/AAAA):', font=fonte, fg='white', bg='#1A3C34').grid(row=1, column=2,
+                                                                                                     padx=5, sticky='e')
     data_fim = tk.Entry(filter_frame, font=fonte, width=12)
     data_fim.grid(row=1, column=3, padx=5, pady=5)
 
@@ -1543,11 +1565,11 @@ def listar_vendas():
             except ValueError:
                 data_venda_dt = None
             if (
-                (num is None or venda['num_venda'] == num) and
-                (not nome or nome in venda['cliente']['nome'].upper()) and
-                (not telefone or telefone in tel_cliente) and
-                (not inicio_dt or (data_venda_dt and data_venda_dt >= inicio_dt)) and
-                (not fim_dt or (data_venda_dt and data_venda_dt <= fim_dt))
+                    (num is None or venda['num_venda'] == num) and
+                    (not nome or nome in venda['cliente']['nome'].upper()) and
+                    (not telefone or telefone in tel_cliente) and
+                    (not inicio_dt or (data_venda_dt and data_venda_dt >= inicio_dt)) and
+                    (not fim_dt or (data_venda_dt and data_venda_dt <= fim_dt))
             ):
                 resultados.append(venda)
         for item in lista.get_children():
@@ -1600,16 +1622,26 @@ def listar_vendas():
 
         info_frame = tk.Frame(detalhe_frame, bg='#1A3C34')
         info_frame.pack(fill='x', pady=10)
-        tk.Label(info_frame, text=f'Venda N°{num_venda} - Cliente: {venda["cliente"]["nome"]}', font=fonte_bold, fg='white', bg='#1A3C34').pack(anchor='w')
-        tk.Label(info_frame, text=f'Data: {venda.get("data", "N/A")}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
-        tk.Label(info_frame, text=f'Telefone: {venda["cliente"]["telefone"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
-        tk.Label(info_frame, text=f'CPF/CNPJ: {venda["cliente"]["cpf_cnpj"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
-        tk.Label(info_frame, text=f'CEP: {venda["cliente"]["cep"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
-        tk.Label(info_frame, text=f'N° Casa: {venda["cliente"]["num_casa"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
-        tk.Label(info_frame, text=f'E-mail: {venda["cliente"]["email"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
-        tk.Label(info_frame, text=f'Valor Bruto: R$ {venda["bruto"]:.2f}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
-        tk.Label(info_frame, text=f'Desconto: R$ {venda["desconto"]:.2f}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
-        tk.Label(info_frame, text=f'Total: R$ {venda["total"]:.2f}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+        tk.Label(info_frame, text=f'Venda N°{num_venda} - Cliente: {venda["cliente"]["nome"]}', font=fonte_bold,
+                 fg='white', bg='#1A3C34').pack(anchor='w')
+        tk.Label(info_frame, text=f'Data: {venda.get("data", "N/A")}', font=fonte, fg='white', bg='#1A3C34').pack(
+            anchor='w')
+        tk.Label(info_frame, text=f'Telefone: {venda["cliente"]["telefone"]}', font=fonte, fg='white',
+                 bg='#1A3C34').pack(anchor='w')
+        tk.Label(info_frame, text=f'CPF/CNPJ: {venda["cliente"]["cpf_cnpj"]}', font=fonte, fg='white',
+                 bg='#1A3C34').pack(anchor='w')
+        tk.Label(info_frame, text=f'CEP: {venda["cliente"]["cep"]}', font=fonte, fg='white', bg='#1A3C34').pack(
+            anchor='w')
+        tk.Label(info_frame, text=f'N° Casa: {venda["cliente"]["num_casa"]}', font=fonte, fg='white',
+                 bg='#1A3C34').pack(anchor='w')
+        tk.Label(info_frame, text=f'E-mail: {venda["cliente"]["email"]}', font=fonte, fg='white', bg='#1A3C34').pack(
+            anchor='w')
+        tk.Label(info_frame, text=f'Valor Bruto: R$ {venda["bruto"]:.2f}', font=fonte, fg='white', bg='#1A3C34').pack(
+            anchor='w')
+        tk.Label(info_frame, text=f'Desconto: R$ {venda["desconto"]:.2f}', font=fonte, fg='white', bg='#1A3C34').pack(
+            anchor='w')
+        tk.Label(info_frame, text=f'Total: R$ {venda["total"]:.2f}', font=fonte, fg='white', bg='#1A3C34').pack(
+            anchor='w')
 
         tk.Label(detalhe_frame, text='Itens', font=fonte_bold, fg='white', bg='#1A3C34').pack(anchor='w', pady=5)
         colunas_itens = ['cod', 'nome', 'preco_venda', 'qtd', 'total']
@@ -1634,7 +1666,8 @@ def listar_vendas():
                 f'R$ {item["total"]:.2f}'
             ))
 
-        tk.Label(detalhe_frame, text='Formas de Pagamento', font=fonte_bold, fg='white', bg='#1A3C34').pack(anchor='w', pady=5)
+        tk.Label(detalhe_frame, text='Formas de Pagamento', font=fonte_bold, fg='white', bg='#1A3C34').pack(anchor='w',
+                                                                                                            pady=5)
         colunas_pag = ['forma', 'valor', 'obs']
         lista_pag = ttk.Treeview(detalhe_frame, columns=colunas_pag, show='headings', height=5)
         lista_pag.heading('forma', text='Forma')
@@ -1668,9 +1701,12 @@ def listar_vendas():
 
         button_frame = tk.Frame(detalhe_frame, bg='#1A3C34')
         button_frame.pack(pady=10)
-        tk.Button(button_frame, text='Gerar Recibo', command=lambda: gerarRecibo(venda), **button_style).pack(side=tk.LEFT, padx=5)
-        tk.Button(button_frame, text='Excluir', command=lambda: [excluir_venda(), detalhe_janela.destroy()], **button_style).pack(side=tk.LEFT, padx=5)
-        tk.Button(button_frame, text='Fechar', command=detalhe_janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text='Gerar Recibo', command=lambda: gerarRecibo(venda), **button_style).pack(
+            side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text='Excluir', command=lambda: [excluir_venda(), detalhe_janela.destroy()],
+                  **button_style).pack(side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text='Fechar', command=detalhe_janela.destroy, **button_style).pack(side=tk.LEFT,
+                                                                                                    padx=5)
 
     def exportar_vendas():
         resultados = pesquisar_venda()
@@ -1696,7 +1732,8 @@ def listar_vendas():
 
     # Carregar vendas iniciais
     pesquisar_venda()
-        
+
+
 def novoOrcamento():
     global num_orcamento, cliente, itens, itensLista, valorTotal, valorTotalLabel
     itens = []
@@ -1726,7 +1763,8 @@ def novoOrcamento():
     frame = tk.Frame(janela, bg='#1A3C34')
     frame.place(relx=0, rely=0, relwidth=1, relheight=1)
 
-    tk.Label(frame, text='Selecionar Cliente para Orçamento', font=('Arial', 14, 'bold'), fg='white', bg='#1A3C34').pack(pady=10)
+    tk.Label(frame, text='Selecionar Cliente para Orçamento', font=('Arial', 14, 'bold'), fg='white',
+             bg='#1A3C34').pack(pady=10)
 
     search_frame = tk.Frame(frame, bg='#1A3C34')
     search_frame.pack(pady=10, fill='x', padx=20)
@@ -1754,12 +1792,16 @@ def novoOrcamento():
 
     button_frame = tk.Frame(frame, bg='#1A3C34')
     button_frame.pack(pady=10)
-    tk.Button(button_frame, text='Procurar', command=lambda: buscaCliente(janela, opc, pesquisa, lista), **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Sem Cliente', command=lambda: selecionarSemCliente(janela), **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Selecionar', command=lambda: selecionarClienteOrcamento(janela, lista), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Procurar', command=lambda: buscaCliente(janela, opc, pesquisa, lista),
+              **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Sem Cliente', command=lambda: selecionarSemCliente(janela), **button_style).pack(
+        side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Selecionar', command=lambda: selecionarClienteOrcamento(janela, lista),
+              **button_style).pack(side=tk.LEFT, padx=5)
     tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
     janela.bind('<Return>', lambda event: buscaCliente(janela, opc, pesquisa, lista, event))
     lista.bind('<Double-1>', lambda event: selecionarClienteOrcamento(janela, lista))
+
 
 def selecionarSemCliente(janela):
     global cliente
@@ -1775,6 +1817,7 @@ def selecionarSemCliente(janela):
     janela.destroy()
     criarOrcamento()
 
+
 def selecionarClienteOrcamento(janela, lista):
     global cliente
     clientes = receberClientes()
@@ -1789,6 +1832,7 @@ def selecionarClienteOrcamento(janela, lista):
     except:
         messagebox.showerror('Erro', 'Selecione um cliente válido', parent=janela)
 
+
 def criarOrcamento():
     global num_orcamento, itens, itensLista, valorTotal, valorTotalLabel
     root.geometry('1000x700')
@@ -1800,12 +1844,15 @@ def criarOrcamento():
 
     header_frame = tk.Frame(frame, bg='#1A3C34')
     header_frame.pack(pady=10, fill='x')
-    tk.Label(header_frame, text=f'Orçamento N°{num_orcamento} - Cliente: {cliente["nome"]}', font=fonte_bold, fg='white', bg='#1A3C34').pack()
+    tk.Label(header_frame, text=f'Orçamento N°{num_orcamento} - Cliente: {cliente["nome"]}', font=fonte_bold,
+             fg='white', bg='#1A3C34').pack()
 
     cliente_frame = tk.Frame(frame, bg='#1A3C34')
     cliente_frame.pack(pady=10, fill='x', padx=20)
-    tk.Label(cliente_frame, text=f'Telefone: {cliente["telefone"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
-    tk.Label(cliente_frame, text=f'CPF/CNPJ: {cliente["cpf_cnpj"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+    tk.Label(cliente_frame, text=f'Telefone: {cliente["telefone"]}', font=fonte, fg='white', bg='#1A3C34').pack(
+        anchor='w')
+    tk.Label(cliente_frame, text=f'CPF/CNPJ: {cliente["cpf_cnpj"]}', font=fonte, fg='white', bg='#1A3C34').pack(
+        anchor='w')
     tk.Label(cliente_frame, text=f'CEP: {cliente["cep"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
     tk.Label(cliente_frame, text=f'N°: {cliente["num_casa"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
     tk.Label(cliente_frame, text=f'E-mail: {cliente["email"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
@@ -1834,15 +1881,20 @@ def criarOrcamento():
     disp_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#3b3b3b', width=10, relief="sunken", bd=3)
     disp_label.pack(side=tk.LEFT, padx=5)
 
-    tk.Button(item_frame, text='Adicionar', command=lambda: adicionarItemPorCodigoOrcamento(cod_entry, nome_label, preco_label, qtd_entry, disp_label, frame), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(item_frame, text='Adicionar',
+              command=lambda: adicionarItemPorCodigoOrcamento(cod_entry, nome_label, preco_label, qtd_entry, disp_label,
+                                                              frame), **button_style).pack(side=tk.LEFT, padx=5)
 
     cod_entry.bind('<KeyRelease>', lambda event: item_por_cod(event, cod_entry, nome_label, preco_label, disp_label))
-    cod_entry.bind('<Return>', lambda event: adicionarItemPorCodigoOrcamento(cod_entry, nome_label, preco_label, qtd_entry, disp_label, frame))
+    cod_entry.bind('<Return>',
+                   lambda event: adicionarItemPorCodigoOrcamento(cod_entry, nome_label, preco_label, qtd_entry,
+                                                                 disp_label, frame))
 
     total_frame = tk.Frame(frame, bg='#1A3C34')
     total_frame.pack(pady=10)
     tk.Label(total_frame, text='Valor Total:', font=fonte_bold, fg='white', bg='#1A3C34').pack(side=tk.LEFT)
-    valorTotalLabel = tk.Label(total_frame, text=f'R$ {valorTotal:.2f}', font=fonte_bold, fg='white', bg='#1A3C34', bd=1, relief="raised")
+    valorTotalLabel = tk.Label(total_frame, text=f'R$ {valorTotal:.2f}', font=fonte_bold, fg='white', bg='#1A3C34',
+                               bd=1, relief="raised")
     valorTotalLabel.pack(side=tk.LEFT, padx=5)
 
     table_frame = tk.Frame(frame, bg='#1A3C34')
@@ -1868,13 +1920,19 @@ def criarOrcamento():
 
     button_frame = tk.Frame(frame, bg='#1A3C34')
     button_frame.pack(pady=10)
-    tk.Button(button_frame, text='Add. Item do Estoque', command=lambda: itemEstoqueOrcamento(frame), **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Add. Item Avulso', command=lambda: itemAvulsoOrcamento(frame), **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Excluir Item', command=lambda: excluirItemOrcamento(itensLista, frame), **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Cancelar Orçamento', command=lambda: cancelarOrcamento(frame), **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Finalizar Orçamento', command=lambda: finalizarOrcamento(frame), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Add. Item do Estoque', command=lambda: itemEstoqueOrcamento(frame),
+              **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Add. Item Avulso', command=lambda: itemAvulsoOrcamento(frame), **button_style).pack(
+        side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Excluir Item', command=lambda: excluirItemOrcamento(itensLista, frame),
+              **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Cancelar Orçamento', command=lambda: cancelarOrcamento(frame), **button_style).pack(
+        side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Finalizar Orçamento', command=lambda: finalizarOrcamento(frame), **button_style).pack(
+        side=tk.LEFT, padx=5)
 
     itensLista.bind('<Delete>', lambda event: excluirItemOrcamento(itensLista, frame))
+
 
 def adicionarItemPorCodigoOrcamento(cod_entry, nome_label, preco_label, qtd_entry, disp_label, parent):
     global itens
@@ -1932,6 +1990,7 @@ def adicionarItemPorCodigoOrcamento(cod_entry, nome_label, preco_label, qtd_entr
     qtd_entry.insert(0, '1.00')
     disp_label.config(text='')
 
+
 def itemEstoqueOrcamento(parent):
     janela = tk.Toplevel(root)
     janela.title('MELLK - Adicionar Item do Estoque ao Orçamento')
@@ -1980,9 +2039,12 @@ def itemEstoqueOrcamento(parent):
 
     button_frame = tk.Frame(frame, bg='#1A3C34')
     button_frame.pack(pady=10)
-    tk.Button(button_frame, text='Procurar', command=lambda: procurarItem(dados, janela), **button_style).pack(side=tk.LEFT, padx=5)
-    tk.Button(button_frame, text='Adicionar', command=lambda: addItemEstoqueOrcamento(dados, janela, parent), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Procurar', command=lambda: procurarItem(dados, janela), **button_style).pack(
+        side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Adicionar', command=lambda: addItemEstoqueOrcamento(dados, janela, parent),
+              **button_style).pack(side=tk.LEFT, padx=5)
     tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
+
 
 def addItemEstoqueOrcamento(dados, janela, parent):
     global itens
@@ -2009,7 +2071,9 @@ def addItemEstoqueOrcamento(dados, janela, parent):
         return
 
     if qtd_val > disp_val:
-        messagebox.showwarning('Aviso', f'Quantidade solicitada ({qtd_val}) excede o estoque disponível ({disp_val}). O item será adicionado mesmo assim.', parent=janela)
+        messagebox.showwarning('Aviso',
+                               f'Quantidade solicitada ({qtd_val}) excede o estoque disponível ({disp_val}). O item será adicionado mesmo assim.',
+                               parent=janela)
 
     for i in itens:
         if i['cod'] == cod:
@@ -2029,6 +2093,7 @@ def addItemEstoqueOrcamento(dados, janela, parent):
     atualizarItensListaOrcamento()
     atualizarValorTotalOrcamento()
     janela.destroy()
+
 
 def itemAvulsoOrcamento(parent):
     janela = tk.Toplevel(root)
@@ -2106,15 +2171,18 @@ def itemAvulsoOrcamento(parent):
 
     button_frame = tk.Frame(frame, bg='#1A3C34')
     button_frame.pack(pady=10)
-    tk.Button(button_frame, text='Adicionar', command=lambda: addItemAvulsoOrcamento(dados, janela), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Adicionar', command=lambda: addItemAvulsoOrcamento(dados, janela),
+              **button_style).pack(side=tk.LEFT, padx=5)
     tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
+
 
 def excluirItemOrcamento(lista, parent):
     global itens
     try:
         ind = int(lista.focus())
         item = itens[ind]
-        confirm = messagebox.askokcancel('Confirmar', f'Tem certeza que deseja remover o item {item["nome"]}?', parent=parent)
+        confirm = messagebox.askokcancel('Confirmar', f'Tem certeza que deseja remover o item {item["nome"]}?',
+                                         parent=parent)
         if confirm:
             itens.pop(ind)
             atualizarItensListaOrcamento()
@@ -2122,13 +2190,16 @@ def excluirItemOrcamento(lista, parent):
     except:
         messagebox.showerror('Erro', 'Selecione um item para remover', parent=parent)
 
+
 def cancelarOrcamento(frame):
     global num_orcamento
-    confirm = messagebox.askyesno('Cancelar', f'Tem certeza que deseja cancelar o orçamento N°{num_orcamento}?', parent=frame)
+    confirm = messagebox.askyesno('Cancelar', f'Tem certeza que deseja cancelar o orçamento N°{num_orcamento}?',
+                                  parent=frame)
     if confirm:
         root.geometry('1000x500')
         frame.destroy()
         frameInicial.tkraise()
+
 
 def atualizarItensListaOrcamento():
     global itensLista, itens
@@ -2143,10 +2214,12 @@ def atualizarItensListaOrcamento():
             f"{item['total']:.2f}",
         ))
 
+
 def atualizarValorTotalOrcamento():
     global itens, valorTotal, valorTotalLabel
     valorTotal = sum(item['total'] for item in itens)
     valorTotalLabel.configure(text=f'R$ {valorTotal:.2f}')
+
 
 def finalizarOrcamento(frame):
     global num_orcamento, cliente, itens, valorTotal
@@ -2181,6 +2254,7 @@ def finalizarOrcamento(frame):
     root.geometry('1000x500')
     frame.destroy()
     frameInicial.tkraise()
+
 
 def gerarReciboOrcamento(orcamento):
     arq = f'orcamento_{orcamento["num_orcamento"]}.pdf'
