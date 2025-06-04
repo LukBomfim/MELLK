@@ -1698,23 +1698,535 @@ def listar_vendas():
     pesquisar_venda()
         
 def novoOrcamento():
-    frame = tk.Frame(root)
+    global num_orcamento, cliente, itens, itensLista, valorTotal, valorTotalLabel
+    itens = []
+    valorTotal = 0.0
+
+    try:
+        with open('orcamentos.json', 'r', encoding='utf-8') as arq:
+            orcamentos = json.load(arq)
+        num_orcamento = 1 if not orcamentos else orcamentos[-1].get('num_orcamento', 0) + 1
+    except (FileNotFoundError, json.JSONDecodeError):
+        num_orcamento = 1
+
+    # Janela para selecionar cliente ou prosseguir sem cliente
+    janela = tk.Toplevel(root)
+    janela.transient(root)
+    janela.grab_set()
+    janela.title('MELLK - Novo Orçamento')
+    janela.geometry('900x400')
+    janela.configure(bg='#1A3C34')
+
+    largura_tela = root.winfo_screenwidth()
+    altura_tela = root.winfo_screenheight()
+    pos_x = (largura_tela - 900) // 2
+    pos_y = (altura_tela - 400) // 2
+    janela.geometry(f'900x400+{pos_x}+{pos_y}')
+
+    frame = tk.Frame(janela, bg='#1A3C34')
     frame.place(relx=0, rely=0, relwidth=1, relheight=1)
 
-    tk.Label(frame, text='Cliente:')
-    cliente = tk.Entry(frame)
+    tk.Label(frame, text='Selecionar Cliente para Orçamento', font=('Arial', 14, 'bold'), fg='white', bg='#1A3C34').pack(pady=10)
+
+    search_frame = tk.Frame(frame, bg='#1A3C34')
+    search_frame.pack(pady=10, fill='x', padx=20)
+    tk.Label(search_frame, text='Pesquisar por:', font=('Arial', 12), fg='white', bg='#1A3C34').pack()
+    opc = ttk.Combobox(search_frame, values=['Nome', 'Telefone', 'CPF/CNPJ'], state='readonly', font=('Arial', 12))
+    opc.set('Nome')
+    opc.pack(pady=5)
+    pesquisa = tk.Entry(search_frame, font=('Arial', 12), width=30)
+    pesquisa.pack(pady=5)
+
+    dados = ['cod', 'nome', 'telefone', 'cpf_cnpj']
+    lista = ttk.Treeview(frame, columns=dados, show='headings', height=10)
+    lista.heading('cod', text='Cód.')
+    lista.heading('nome', text='Nome')
+    lista.heading('telefone', text='Telefone')
+    lista.heading('cpf_cnpj', text='CPF/CNPJ')
+    lista.column('cod', width=100)
+    lista.column('nome', width=300)
+    lista.column('telefone', width=150)
+    lista.column('cpf_cnpj', width=150)
+    scrollbar = ttk.Scrollbar(frame, orient='vertical', command=lista.yview)
+    lista.configure(yscrollcommand=scrollbar.set)
+    lista.pack(side=tk.LEFT, fill='both', expand=True, padx=10, pady=10)
+    scrollbar.pack(side=tk.RIGHT, fill='y')
+
+    button_frame = tk.Frame(frame, bg='#1A3C34')
+    button_frame.pack(pady=10)
+    tk.Button(button_frame, text='Procurar', command=lambda: buscaCliente(janela, opc, pesquisa, lista), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Sem Cliente', command=lambda: selecionarSemCliente(janela), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Selecionar', command=lambda: selecionarClienteOrcamento(janela, lista), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
+    janela.bind('<Return>', lambda event: buscaCliente(janela, opc, pesquisa, lista, event))
+    lista.bind('<Double-1>', lambda event: selecionarClienteOrcamento(janela, lista))
+
+def selecionarSemCliente(janela):
+    global cliente
+    cliente = {
+        "cod": None,
+        "nome": "CLIENTE NÃO IDENTIFICADO",
+        "telefone": "",
+        "cpf_cnpj": "",
+        "cep": "",
+        "num_casa": "",
+        "email": ""
+    }
+    janela.destroy()
+    criarOrcamento()
+
+def selecionarClienteOrcamento(janela, lista):
+    global cliente
+    clientes = receberClientes()
+    try:
+        codCliente = int(lista.focus())
+        for c in clientes:
+            if c['cod'] == codCliente:
+                cliente = c
+                janela.destroy()
+                criarOrcamento()
+                break
+    except:
+        messagebox.showerror('Erro', 'Selecione um cliente válido', parent=janela)
+
+def criarOrcamento():
+    global num_orcamento, itens, itensLista, valorTotal, valorTotalLabel
+    root.geometry('1000x700')
+    frame = tk.Frame(root, bg='#1A3C34')
+    frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+    fonte = ('Arial', 12)
+    fonte_bold = ('Arial', 14, 'bold')
+
+    header_frame = tk.Frame(frame, bg='#1A3C34')
+    header_frame.pack(pady=10, fill='x')
+    tk.Label(header_frame, text=f'Orçamento N°{num_orcamento} - Cliente: {cliente["nome"]}', font=fonte_bold, fg='white', bg='#1A3C34').pack()
+
+    cliente_frame = tk.Frame(frame, bg='#1A3C34')
+    cliente_frame.pack(pady=10, fill='x', padx=20)
+    tk.Label(cliente_frame, text=f'Telefone: {cliente["telefone"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+    tk.Label(cliente_frame, text=f'CPF/CNPJ: {cliente["cpf_cnpj"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+    tk.Label(cliente_frame, text=f'CEP: {cliente["cep"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+    tk.Label(cliente_frame, text=f'N°: {cliente["num_casa"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+    tk.Label(cliente_frame, text=f'E-mail: {cliente["email"]}', font=fonte, fg='white', bg='#1A3C34').pack(anchor='w')
+
+    item_frame = tk.Frame(frame, bg='#1A3C34')
+    item_frame.pack(pady=10, fill='x', padx=20)
+
+    tk.Label(item_frame, text='Código:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT)
+    cod_entry = tk.Entry(item_frame, font=fonte, width=10, bg='#E5E5E5', fg='#000000', insertbackground='#000000')
+    cod_entry.pack(side=tk.LEFT, padx=5)
+
+    tk.Label(item_frame, text='Quantidade:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT, padx=(10, 5))
+    qtd_entry = tk.Entry(item_frame, font=fonte, width=10, bg='#E5E5E5', fg='#000000', insertbackground='#000000')
+    qtd_entry.insert(0, '1.00')
+    qtd_entry.pack(side=tk.LEFT, padx=5)
+
+    tk.Label(item_frame, text='Nome do Produto:', font=fonte, fg='white', bg="#1A3C34").pack(side=tk.LEFT, padx=(10, 5))
+    nome_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#3b3b3b', width=30, relief="sunken", bd=3)
+    nome_label.pack(side=tk.LEFT, padx=5)
+
+    tk.Label(item_frame, text='Valor Unit.:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT, padx=(10, 5))
+    preco_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#3b3b3b', width=10, relief="sunken", bd=3)
+    preco_label.pack(side=tk.LEFT, padx=5)
+
+    tk.Label(item_frame, text='Disponível:', font=fonte, fg='white', bg='#1A3C34').pack(side=tk.LEFT, padx=(10, 5))
+    disp_label = tk.Label(item_frame, text='', font=fonte, fg='white', bg='#3b3b3b', width=10, relief="sunken", bd=3)
+    disp_label.pack(side=tk.LEFT, padx=5)
+
+    tk.Button(item_frame, text='Adicionar', command=lambda: adicionarItemPorCodigoOrcamento(cod_entry, nome_label, preco_label, qtd_entry, disp_label, frame), **button_style).pack(side=tk.LEFT, padx=5)
+
+    cod_entry.bind('<KeyRelease>', lambda event: item_por_cod(event, cod_entry, nome_label, preco_label, disp_label))
+    cod_entry.bind('<Return>', lambda event: adicionarItemPorCodigoOrcamento(cod_entry, nome_label, preco_label, qtd_entry, disp_label, frame))
+
+    total_frame = tk.Frame(frame, bg='#1A3C34')
+    total_frame.pack(pady=10)
+    tk.Label(total_frame, text='Valor Total:', font=fonte_bold, fg='white', bg='#1A3C34').pack(side=tk.LEFT)
+    valorTotalLabel = tk.Label(total_frame, text=f'R$ {valorTotal:.2f}', font=fonte_bold, fg='white', bg='#1A3C34', bd=1, relief="raised")
+    valorTotalLabel.pack(side=tk.LEFT, padx=5)
+
+    table_frame = tk.Frame(frame, bg='#1A3C34')
+    table_frame.pack(fill='both', expand=True, padx=20, pady=10)
 
     colunas = ['cod', 'nome', 'preco_venda', 'qtd', 'total']
-    lista = ttk.Treeview(frame, columns=colunas, show='headings')
-    lista.heading('cod', text='Cod.')
-    lista.heading('nome', text='Item')
-    lista.heading('preco_venda', text='Valor Unit.')
-    lista.heading('qtd', text='Qtd.')
-    lista.heading('total', text='Total')
-    lista.pack()
+    itensLista = ttk.Treeview(table_frame, columns=colunas, show='headings', height=10)
+    itensLista.heading('cod', text='Código')
+    itensLista.heading('nome', text='Nome')
+    itensLista.heading('preco_venda', text='Valor Unit.')
+    itensLista.heading('qtd', text='Qtd')
+    itensLista.heading('total', text='Total')
+    itensLista.column('cod', width=100)
+    itensLista.column('nome', width=300)
+    itensLista.column('preco_venda', width=100)
+    itensLista.column('qtd', width=100)
+    itensLista.column('total', width=100)
 
-    tk.Label(frame, text='Observações:')
-    obs = tk.Text(frame)
+    scrollbar = ttk.Scrollbar(table_frame, orient='vertical', command=itensLista.yview)
+    itensLista.configure(yscrollcommand=scrollbar.set)
+    itensLista.pack(side=tk.LEFT, fill='both', expand=True)
+    scrollbar.pack(side=tk.RIGHT, fill='y')
 
-    tk.Button(frame, text='Salvar Orçamento').pack()
-    tk.Button(frame, text='Voltar', command=frame.destroy).pack()
+    button_frame = tk.Frame(frame, bg='#1A3C34')
+    button_frame.pack(pady=10)
+    tk.Button(button_frame, text='Add. Item do Estoque', command=lambda: itemEstoqueOrcamento(frame), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Add. Item Avulso', command=lambda: itemAvulsoOrcamento(frame), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Excluir Item', command=lambda: excluirItemOrcamento(itensLista, frame), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Cancelar Orçamento', command=lambda: cancelarOrcamento(frame), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Finalizar Orçamento', command=lambda: finalizarOrcamento(frame), **button_style).pack(side=tk.LEFT, padx=5)
+
+    itensLista.bind('<Delete>', lambda event: excluirItemOrcamento(itensLista, frame))
+
+def adicionarItemPorCodigoOrcamento(cod_entry, nome_label, preco_label, qtd_entry, disp_label, parent):
+    global itens
+    estoque = receberEstoque()
+    cod = cod_entry.get()
+    nome = nome_label['text']
+    preco = preco_label['text'].replace('R$ ', '') if preco_label['text'] else ''
+    qtd = qtd_entry.get()
+
+    if not cod or not nome or not preco or not qtd:
+        messagebox.showerror('Erro', 'Preencha ou selecione um item válido', parent=parent)
+        return
+
+    try:
+        cod_val = int(cod)
+        preco_val = float(preco)
+        qtd_val = float(qtd)
+    except (ValueError):
+        messagebox.showerror('Erro', 'Valores inválidos para preço ou quantidade', parent=parent)
+        return
+
+    if qtd_val <= 0:
+        messagebox.showerror('Erro', 'A quantidade deve ser maior que zero', parent=parent)
+        return
+
+    total = preco_val * qtd_val
+    for item in itens:
+        if item['cod'] == cod:
+            messagebox.showerror('Erro', 'Item já adicionado ao orçamento', parent=parent)
+            return
+
+    for i in estoque:
+        if cod_val == i['cod']:
+            univ_cod = i['univ_cod']
+            break
+    else:
+        univ_cod = ''
+
+    item = {
+        'univ_cod': univ_cod,
+        'cod': cod,
+        'nome': nome,
+        'preco_venda': preco_val,
+        'qtd': qtd_val,
+        'total': total
+    }
+    itens.append(item)
+    atualizarItensListaOrcamento()
+    atualizarValorTotalOrcamento()
+
+    cod_entry.delete(0, tk.END)
+    nome_label.config(text='')
+    preco_label.config(text='')
+    qtd_entry.delete(0, tk.END)
+    qtd_entry.insert(0, '1.00')
+    disp_label.config(text='')
+
+def itemEstoqueOrcamento(parent):
+    janela = tk.Toplevel(root)
+    janela.title('MELLK - Adicionar Item do Estoque ao Orçamento')
+    janela.configure(bg='#1A3C34')
+    janela.resizable(False, False)
+    janela.grab_set()
+
+    largura_tela = root.winfo_screenwidth()
+    altura_tela = root.winfo_screenheight()
+    pos_x = (largura_tela - 400) // 2
+    pos_y = (altura_tela - 400) // 2
+    janela.geometry(f'400x500+{pos_x}+{pos_y}')
+
+    frame = tk.Frame(janela, bg='#1A3C34')
+    frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+    fonte = ('Arial', 12)
+    num_float = (janela.register(entryNumFloat), '%P')
+
+    cod = tk.Entry(frame, font=fonte, width=30)
+    nome = tk.Entry(frame, font=fonte, width=30, state='disabled', disabledbackground='#E5E5E5')
+    venda = tk.Entry(frame, font=fonte, width=30, validate='key', validatecommand=num_float)
+    qtd = tk.Entry(frame, font=fonte, width=30, validate='key', validatecommand=num_float)
+    total = tk.Entry(frame, font=fonte, width=30, state='disabled', disabledbackground='#E5E5E5')
+    disp = tk.Entry(frame, font=fonte, width=30, state='disabled', disabledbackground='#E5E5E5')
+
+    tk.Label(frame, text='Código do produto:', font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
+    cod.pack(pady=2)
+    tk.Label(frame, text='Item:', font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
+    nome.pack(pady=2)
+    tk.Label(frame, text='Valor:', font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
+    venda.pack(pady=2)
+    tk.Label(frame, text='Quantidade:', font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
+    qtd.pack(pady=2)
+    tk.Label(frame, text='Total:', font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
+    total.pack(pady=2)
+    tk.Label(frame, text='Disponível:', font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
+    disp.pack(pady=2)
+
+    cod.bind('<KeyRelease>', lambda event: item_por_cod(event, cod, nome, venda, disp))
+    cod.bind('<KeyRelease>', lambda event: totalItem(event, venda, qtd, total))
+    venda.bind('<KeyRelease>', lambda event: totalItem(event, venda, qtd, total))
+    qtd.bind('<KeyRelease>', lambda event: totalItem(event, venda, qtd, total))
+
+    dados = [cod, nome, venda, qtd, total, disp]
+
+    button_frame = tk.Frame(frame, bg='#1A3C34')
+    button_frame.pack(pady=10)
+    tk.Button(button_frame, text='Procurar', command=lambda: procurarItem(dados, janela), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Adicionar', command=lambda: addItemEstoqueOrcamento(dados, janela, parent), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
+
+def addItemEstoqueOrcamento(dados, janela, parent):
+    global itens
+    cod = dados[0].get()
+    nome = dados[1].get()
+    venda = dados[2].get()
+    qtd = dados[3].get()
+    disp = dados[5].get()
+
+    if not cod or not nome or not venda or not qtd:
+        messagebox.showerror('Erro', 'Preencha todos os campos do item', parent=janela)
+        return
+
+    try:
+        venda_val = float(venda)
+        qtd_val = float(qtd)
+        disp_val = float(disp) if disp else 0
+    except ValueError:
+        messagebox.showerror('Erro', 'Valores de venda ou quantidade inválidos', parent=janela)
+        return
+
+    if qtd_val <= 0:
+        messagebox.showerror('Erro', 'A quantidade deve ser maior que zero', parent=janela)
+        return
+
+    if qtd_val > disp_val:
+        messagebox.showwarning('Aviso', f'Quantidade solicitada ({qtd_val}) excede o estoque disponível ({disp_val}). O item será adicionado mesmo assim.', parent=janela)
+
+    for i in itens:
+        if i['cod'] == cod:
+            messagebox.showerror('Erro', 'Item já adicionado ao orçamento', parent=janela)
+            return
+
+    total = venda_val * qtd_val
+    item = {
+        'univ_cod': cod,
+        'cod': cod,
+        'nome': nome,
+        'preco_venda': venda_val,
+        'qtd': qtd_val,
+        'total': total
+    }
+    itens.append(item)
+    atualizarItensListaOrcamento()
+    atualizarValorTotalOrcamento()
+    janela.destroy()
+
+def itemAvulsoOrcamento(parent):
+    janela = tk.Toplevel(root)
+    janela.title('MELLK - Adicionar Item Avulso ao Orçamento')
+    janela.geometry('400x300')
+    janela.configure(bg='#1A3C34')
+    janela.resizable(False, False)
+    janela.grab_set()
+
+    largura_tela = root.winfo_screenwidth()
+    altura_tela = root.winfo_screenheight()
+    pos_x = (largura_tela - 400) // 2
+    pos_y = (altura_tela - 300) // 2
+    janela.geometry(f'400x300+{pos_x}+{pos_y}')
+
+    frame = tk.Frame(janela, bg='#1A3C34')
+    frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+    fonte = ('Arial', 12)
+    num_float = (janela.register(entryNumFloat), '%P')
+
+    nome = tk.Entry(frame, font=fonte, width=30)
+    venda = tk.Entry(frame, font=fonte, width=30, validate='key', validatecommand=num_float)
+    qtd = tk.Entry(frame, font=fonte, width=30, validate='key', validatecommand=num_float)
+    total = tk.Entry(frame, font=fonte, width=30, state='disabled', disabledbackground='#E5E5E5')
+
+    tk.Label(frame, text='Nome do Item:', font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
+    nome.pack(pady=2)
+    tk.Label(frame, text='Valor de Venda:', font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
+    venda.pack(pady=2)
+    tk.Label(frame, text='Quantidade:', font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
+    qtd.pack(pady=2)
+    qtd.insert(0, '1.00')
+    tk.Label(frame, text='Total:', font=fonte, fg='white', bg='#1A3C34').pack(pady=(10, 2))
+    total.pack(pady=2)
+
+    venda.bind('<KeyRelease>', lambda event: totalItem(event, venda, qtd, total))
+    qtd.bind('<KeyRelease>', lambda event: totalItem(event, venda, qtd, total))
+
+    dados = [nome, venda, qtd, total]
+
+    def addItemAvulsoOrcamento(dados, janela):
+        nome = dados[0].get()
+        venda = dados[1].get()
+        qtd = dados[2].get()
+
+        if not nome or not venda or not qtd:
+            messagebox.showerror('Erro', 'Preencha todos os campos', parent=janela)
+            return
+
+        try:
+            venda_val = float(venda)
+            qtd_val = float(qtd)
+        except ValueError:
+            messagebox.showerror('Erro', 'Valores de venda ou quantidade inválidos', parent=janela)
+            return
+
+        if qtd_val <= 0:
+            messagebox.showerror('Erro', 'A quantidade deve ser maior que zero', parent=janela)
+            return
+
+        total = venda_val * qtd_val
+        item = {
+            'univ_cod': None,
+            'cod': f'AVULSO_{len(itens) + 1}',
+            'nome': nome,
+            'preco_venda': venda_val,
+            'qtd': qtd_val,
+            'total': total
+        }
+        itens.append(item)
+        atualizarItensListaOrcamento()
+        atualizarValorTotalOrcamento()
+        janela.destroy()
+
+    button_frame = tk.Frame(frame, bg='#1A3C34')
+    button_frame.pack(pady=10)
+    tk.Button(button_frame, text='Adicionar', command=lambda: addItemAvulsoOrcamento(dados, janela), **button_style).pack(side=tk.LEFT, padx=5)
+    tk.Button(button_frame, text='Cancelar', command=janela.destroy, **button_style).pack(side=tk.LEFT, padx=5)
+
+def excluirItemOrcamento(lista, parent):
+    global itens
+    try:
+        ind = int(lista.focus())
+        item = itens[ind]
+        confirm = messagebox.askokcancel('Confirmar', f'Tem certeza que deseja remover o item {item["nome"]}?', parent=parent)
+        if confirm:
+            itens.pop(ind)
+            atualizarItensListaOrcamento()
+            atualizarValorTotalOrcamento()
+    except:
+        messagebox.showerror('Erro', 'Selecione um item para remover', parent=parent)
+
+def cancelarOrcamento(frame):
+    global num_orcamento
+    confirm = messagebox.askyesno('Cancelar', f'Tem certeza que deseja cancelar o orçamento N°{num_orcamento}?', parent=frame)
+    if confirm:
+        root.geometry('1000x500')
+        frame.destroy()
+        frameInicial.tkraise()
+
+def atualizarItensListaOrcamento():
+    global itensLista, itens
+    for i in itensLista.get_children():
+        itensLista.delete(i)
+    for item in itens:
+        itensLista.insert('', 'end', iid=itens.index(item), values=(
+            item['cod'],
+            item['nome'],
+            f"{item['preco_venda']:.2f}",
+            f"{item['qtd']:.2f}",
+            f"{item['total']:.2f}",
+        ))
+
+def atualizarValorTotalOrcamento():
+    global itens, valorTotal, valorTotalLabel
+    valorTotal = sum(item['total'] for item in itens)
+    valorTotalLabel.configure(text=f'R$ {valorTotal:.2f}')
+
+def finalizarOrcamento(frame):
+    global num_orcamento, cliente, itens, valorTotal
+    if not itens:
+        messagebox.showerror('Erro', 'Nenhum item adicionado ao orçamento', parent=frame)
+        return
+
+    orcamento = {
+        'num_orcamento': num_orcamento,
+        'cliente': cliente,
+        'itens': itens,
+        'total': valorTotal,
+        'data': datetime.now().strftime("%d/%m/%Y")
+    }
+
+    try:
+        with open('orcamentos.json', 'r+', encoding='utf-8') as arq:
+            orcamentos = json.load(arq)
+            orcamentos.append(orcamento)
+            arq.seek(0)
+            json.dump(orcamentos, arq, indent=4, ensure_ascii=False)
+            arq.truncate()
+    except FileNotFoundError:
+        with open('orcamentos.json', 'w', encoding='utf-8') as arq:
+            json.dump([orcamento], arq, indent=4, ensure_ascii=False)
+
+    recibo = messagebox.askyesno('Recibo', 'Deseja gerar um PDF do orçamento?', parent=frame)
+    if recibo:
+        gerarReciboOrcamento(orcamento)
+
+    messagebox.showinfo('Sucesso', f'Orçamento N°{num_orcamento} finalizado com sucesso!', parent=frame)
+    root.geometry('1000x500')
+    frame.destroy()
+    frameInicial.tkraise()
+
+def gerarReciboOrcamento(orcamento):
+    arq = f'orcamento_{orcamento["num_orcamento"]}.pdf'
+    page_size = (227, 280)
+    recibo = canvas.Canvas(arq, pagesize=page_size)
+    largura, altura = page_size
+    margem = 10
+    recibo.setFont('Courier', 6)
+    recibo.setTitle(f'Orçamento N°{orcamento["num_orcamento"]}')
+
+    y = altura - margem - 20
+
+    def linha(t, s=10, centro=False):
+        nonlocal y
+        if y < margem + 20:
+            recibo.showPage()
+            recibo.setFont('Courier', 8)
+            y = altura - margem - 20
+        if centro:
+            recibo.drawCentredString(largura / 2, y, t)
+        else:
+            recibo.drawString(margem, y, t)
+        y -= s
+
+    recibo.setFont('Courier-Bold', 10)
+    linha(f'ORÇAMENTO N°{orcamento["num_orcamento"]}', centro=True, s=12)
+    recibo.setFont('Courier', 8)
+    linha(f'Data: {orcamento["data"]}', s=10)
+    linha('-' * 40, s=10)
+    linha(f'CLIENTE: {orcamento["cliente"]["nome"][:20]:<20}')
+    linha(f'CPF/CNPJ: {orcamento["cliente"]["cpf_cnpj"]:<20}')
+    linha('-' * 40, s=10)
+    linha(f'{"ITEM":<20}{"VAL":>8}{"QTD":>6}{"TOTAL":>8}')
+    linha('-' * 40, s=8)
+    for item in orcamento['itens']:
+        nome = item['nome'][:20]
+        valor = float(item['preco_venda'])
+        qtd = float(item['qtd'])
+        total = float(item['total'])
+        linha(f'{nome:<20}{valor:>8.2f}{qtd:>6.1f}{total:>8.2f}')
+    totalfinal = float(orcamento['total'])
+    linha('-' * 40, s=10)
+    linha(f'{"TOTAL:":>26} R${totalfinal:>8.2f}')
+    recibo.setFont('Courier', 6)
+    recibo.save()
+    try:
+        os.startfile(arq)
+    except:
+        messagebox.showinfo('Sucesso', f'Orçamento salvo em {arq}')

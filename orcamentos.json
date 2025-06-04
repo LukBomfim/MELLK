@@ -1,0 +1,26 @@
+[
+    {
+        "num_orcamento": 1,
+        "cliente": {
+            "cod": 4,
+            "nome": "Comercial Lima Ltda",
+            "telefone": "(41) 99876-5432",
+            "cpf_cnpj": "12.345.678/0001-90",
+            "cep": "80050-200",
+            "num_casa": "789",
+            "email": "contato@comerciallima.com.br"
+        },
+        "itens": [
+            {
+                "univ_cod": 3,
+                "cod": "3",
+                "nome": "Parafusadeira Bosch 12V",
+                "preco_venda": 299.0,
+                "qtd": 1.0,
+                "total": 299.0
+            }
+        ],
+        "total": 299.0,
+        "data": "04/06/2025"
+    }
+]
