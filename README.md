@@ -142,10 +142,9 @@
 <h2>Possível Estrutura modular:</h2>
 <ul>
     <li><code>clientes.py</code> – lógica de CRUD para clientes.</li>
-    <li><code>produtos.py</code> – cadastro e controle de estoque.</li>
+    <li><code>estoque.py</code> – cadastro e controle de estoque.</li>
     <li><code>vendas.py</code> – gerenciamento de pedidos e fluxo de compra.</li>
-    <li><code>entregas.py</code> – módulo opcional de logística e frete.</li>
-    <li><code>caixa.py</code> – controle de pagamentos e descontos.</li>
+    <li><code>compras.py</code> – realização de compras e registro.</li>
     <li><code>financeiro.py</code> – relatórios e fluxo de caixa.</li>
     <li><code>main.py</code> – ponto de entrada e orquestração geral.</li>
 </ul>
